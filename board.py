@@ -102,13 +102,23 @@ class Board:
                 if self.grid[y][hx]: return (hx, y), "left"
         return None, None
 
-    def is_line_firable(self, x, y):
+    def is_line_firable(self, x, y, direction):
+        if direction == "down":
+            if self.grid[INNER_START][x]: return False
+        elif direction == "up":
+            if self.grid[INNER_END - 1][x]: return False
+        elif direction == "right":
+            if self.grid[y][INNER_START]: return False
+        elif direction == "left":
+            if self.grid[y][INNER_END - 1]: return False
+            
         if INNER_START <= x < INNER_END:
             for hy in range(INNER_START, INNER_END):
                 if self.grid[hy][x]: return True
         if INNER_START <= y < INNER_END:
             for hx in range(INNER_START, INNER_END):
                 if self.grid[y][hx]: return True
+        
         return False
 
     def handle_click(self, mouse_pos):
@@ -121,7 +131,7 @@ class Board:
             grid_y = rel_y // CELL_SIZE
             
             head, direction = self.get_firing_head(grid_x, grid_y)
-            if head and self.is_line_firable(grid_x, grid_y):
+            if head and self.is_line_firable(grid_x, grid_y, direction):
                 self.fire_block(head[0], head[1], direction)
                 self.pending_logic = True
 
@@ -390,7 +400,7 @@ class Board:
         hovered_head, direction = self.get_firing_head(grid_x, grid_y)
         firable = False
         if hovered_head:
-            firable = self.is_line_firable(grid_x, grid_y)
+            firable = self.is_line_firable(grid_x, grid_y, direction)
 
         center_rect = pygame.Rect(
             BOARD_OFFSET_X + INNER_START * CELL_SIZE,

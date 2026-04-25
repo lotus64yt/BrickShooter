@@ -1,12 +1,12 @@
 
-# Level definitions for Brick Shooter
-# Each level is a 10x10 grid for the inner zone.
-# 'X' represents an empty cell.
-# '0'-'7' represents the index in BLOCK_COLORS.
+# créations des niveaux pour Brick Shooter
+# chaque niveau est une grille de 10x10 grid
+# 'X' représente une cellule vide.
+# '0'-'7' represente l'index dans BLOCK_COLORS.
 
 
 LEVEL_DATA = [
-    # Level 1 - The Classic Core
+    # Level 1 - Le classique
     [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
@@ -19,7 +19,7 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 2 - The Cross
+    # Level 2 - La croix
     [
         "XXXXXXXXXX",
         "XXXX0XXXXX",
@@ -32,7 +32,7 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 3 - The Ring
+    # Level 3 - Le rond
     [
         "XXXXXXXXXX",
         "XXX010XXXX",
@@ -45,7 +45,7 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 4 - Chessboard
+    # Level 4 - Le Fromage
     [
         "XXXXXXXXXX",
         "XX010101XX",
@@ -58,7 +58,7 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 5 - Twin Diamonds
+    # Level 5 - Les Diamants Jumeaux
     [
         "XXXXXXXXXX",
         "XXXX0XXXXX",
@@ -71,7 +71,7 @@ LEVEL_DATA = [
         "XXXX2XXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 6 - Isolated Islands
+    # Level 6 - Les deux iles
     [
         "XXXXXXXXXX",
         "XX01XXXXXX",
