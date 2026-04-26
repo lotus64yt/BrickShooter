@@ -1,0 +1,47 @@
+name: Upload to MonLycee Timeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: |
+          npm install puppeteer
+          # Install necessary libraries for Chromium to run on Ubuntu
+          sudo apt-get update
+          sudo apt-get install -y libgbm-dev
+
+      - name: Zip project
+        run: |
+          zip -r project.zip . -x "*.git*" "node_modules/*" ".github/*" "scripts/*" "project.zip"
+
+      - name: Get last commit message
+        id: commit_msg
+        run: |
+          MSG=$(git log -1 --pretty=%s)
+          echo "msg=$MSG" >> $GITHUB_OUTPUT
+
+      - name: Run Puppeteer script
+        env:
+          MONLYCEE_USERNAME: ${{ secrets.MONLYCEE_USERNAME }}
+          MONLYCEE_PASSWORD: ${{ secrets.MONLYCEE_PASSWORD }}
+          COMMIT_MESSAGE: ${{ steps.commit_msg.outputs.msg }}
+          ZIP_PATH: project.zip
+        run: node scripts/upload_to_timeline.js
