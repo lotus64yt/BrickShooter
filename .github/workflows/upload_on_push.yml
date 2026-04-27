@@ -8,7 +8,7 @@ on:
 
 jobs:
   upload:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -22,10 +22,7 @@ jobs:
           node-version: "18"
 
       - name: Install dependencies
-        run: |
-          npm install puppeteer archiver glob puppeteer-extra puppeteer-extra-plugin-stealth
-          sudo apt-get update
-          sudo apt-get install -y libgbm-dev
+        run: npm install puppeteer archiver glob puppeteer-extra puppeteer-extra-plugin-stealth
 
       - name: Get last commit message
         id: commit_msg
