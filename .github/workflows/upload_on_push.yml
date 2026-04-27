@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install puppeteer archiver glob
+          npm install puppeteer archiver glob puppeteer-extra puppeteer-extra-plugin-stealth
           sudo apt-get update
           sudo apt-get install -y libgbm-dev
 
