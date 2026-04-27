@@ -37,5 +37,4 @@ class Menu:
         title_rect = title_surf.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
         surface.blit(title_surf, title_rect)
         
-        # Play Button
         self.play_button.draw(surface)
