@@ -1,104 +1,284 @@
 const puppeteer = require("puppeteer");
 const path = require("path");
+const fs = require("fs");
+const archiver = require("archiver");
+const glob = require("glob");
+
+async function createPyZip(zipPath) {
+  return new Promise((resolve, reject) => {
+    const output = fs.createWriteStream(zipPath);
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    output.on("close", () => {
+      resolve();
+    });
+    archive.on("error", (err) => reject(err));
+
+    archive.pipe(output);
+
+    const { globSync } = require("glob");
+    const pyFiles = globSync("**/*.py", {
+      cwd: __dirname.replace("/scripts", ""),
+      ignore: ["node_modules/**", ".venv/**", "venv/**"],
+    });
+
+    if (pyFiles.length > 0) {
+      for (const file of pyFiles) {
+        const fullPath = path.join(__dirname.replace("/scripts", ""), file);
+        archive.file(fullPath, { name: file });
+      }
+    }
+    archive.finalize();
+  });
+}
 
 (async () => {
   const username = process.env.MONLYCEE_USERNAME;
   const password = process.env.MONLYCEE_PASSWORD;
   const commitMessage = process.env.COMMIT_MESSAGE;
   const zipPath = path.resolve(process.env.ZIP_PATH);
+
+  await createPyZip(zipPath);
+
   const timelineUrl =
     "https://ent.monlycee.net/timelinegenerator#/view/3ff4382a-5f59-4378-af48-c50b1eaa4fb9";
 
-  console.log("Starting Puppeteer...");
   const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: process.env.HEADLESS !== "false" ? "new" : false,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--window-size=1920,1080",
+    ],
   });
   const page = await browser.newPage();
+  await page.setViewport({ width: 1920, height: 1080 });
+  await page.setUserAgent(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  );
 
   try {
-    console.log("Navigating to login page...");
-    await page.goto("https://psn.monlycee.net", { waitUntil: "networkidle2" });
+    await page.goto(timelineUrl);
 
-    console.log("Logging in...");
-    await page.waitForSelector("#username");
-    await page.type("#username", username);
-    await page.type("#password", password);
-    await page.click("#kc-login");
+    try {
+      await Promise.race([
+        page.waitForSelector("#username", { timeout: 15000 }),
+        page.waitForSelector("button.cell.right-magnet", { timeout: 15000 }),
+      ]);
+    } catch (e) {}
 
-    await page.waitForNavigation({ waitUntil: "networkidle2" });
-    console.log("Logged in successfully.");
+    if (await page.$("#username")) {
+      await page.type("#username", username);
+      await page.type("#password", password);
+      await Promise.all([
+        page.click("#kc-login"),
+        page
+          .waitForNavigation({ waitUntil: "load", timeout: 60000 })
+          .catch(() => {}),
+      ]);
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+    }
 
-    console.log(`Navigating to timeline: ${timelineUrl}`);
-    await page.goto(timelineUrl, { waitUntil: "networkidle2" });
+    for (let retry = 0; retry < 3; retry++) {
+      await page.goto(timelineUrl, { waitUntil: "load" });
+      await new Promise((r) => setTimeout(r, 6000));
 
-    console.log('Clicking "Add an event"...');
+      const is404 = await page.evaluate(
+        () =>
+          document.body.innerText.includes("404") ||
+          document.body.innerText.includes("Oops") ||
+          document.title.includes("Error"),
+      );
+
+      if (!is404 && page.url().includes("timelinegenerator")) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 4000));
+    }
+
     const addEventSelector = "button.cell.right-magnet.no-margin.ng-scope";
     await page.waitForSelector(addEventSelector);
     await page.click(addEventSelector);
 
-    console.log("Setting event title...");
-    const titleSelector = "input.ten.cell";
+    const titleSelector =
+      'input[placeholder="Information bubble"], input.ten.cell';
     await page.waitForSelector(titleSelector);
     await page.type(titleSelector, commitMessage);
 
-    console.log("Opening file upload modal...");
-    const paperclipSelector = "i.v-icon.v-paperclip";
-    await page.waitForSelector(paperclipSelector);
-    await page.click(paperclipSelector);
-
-    console.log('Waiting for modal and clicking "UPLOAD" tab...');
+    await page.click('div.drawing-zone[role="textbox"]').catch(() => {});
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const [uploadTab] = await page.$x(
-      "//div[contains(text(), 'UPLOAD')] | //button[contains(text(), 'UPLOAD')] | //span[contains(text(), 'UPLOAD')]",
-    );
-    if (uploadTab) {
-      await uploadTab.click();
+
+    const paperclipSelector = ".option.attachment, i.v-icon.v-paperclip";
+    const folderPencilSelector = "i.edit.pick-file, .v-icon.v-pencil";
+
+    let modalOpened = false;
+    if (await page.$(paperclipSelector)) {
+      await page.click(paperclipSelector);
+      modalOpened = true;
     } else {
-      console.warn(
-        "Could not find UPLOAD tab by text, trying to find .upload-input directly...",
-      );
-    }
-
-    console.log(`Uploading file: ${zipPath}`);
-    const fileInputSelector = "input.upload-input";
-    await page.waitForSelector(fileInputSelector, { visible: false });
-    const inputHandle = await page.$(fileInputSelector);
-    await inputHandle.uploadFile(zipPath);
-
-    console.log("Waiting for upload to process...");
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
-    console.log("Publishing/Saving the event...");
-    const saveButtonSelector = "button.right-magnet";
-    await page.waitForSelector(saveButtonSelector);
-
-    // Find the button that specifically contains 'Enregistrer' or 'Save'
-    const buttons = await page.$$(saveButtonSelector);
-    let saved = false;
-    for (const btn of buttons) {
-      const text = await page.evaluate((el) => el.innerText, btn);
-      if (
-        text.toLowerCase().includes("enregistrer") ||
-        text.toLowerCase().includes("save") ||
-        text.toLowerCase().includes("publier")
-      ) {
-        await btn.click();
-        saved = true;
-        break;
+      const pencil = await page.$(folderPencilSelector);
+      if (pencil) {
+        await pencil.click();
+        modalOpened = true;
       }
     }
 
-    if (!saved) {
-      console.log("Clicking the first available save button...");
-      await page.click(saveButtonSelector);
+    if (!modalOpened) {
+      throw new Error("Could not find upload icon");
     }
 
-    console.log("Event published successfully!");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+
+    const uploadTab = await page.evaluateHandle(() => {
+      const keywords = [
+        "UPLOAD",
+        "CHARGER",
+        "TRANSFÉRER",
+        "IMPORTER",
+        "TÉLÉCHARGER",
+      ];
+      const findInDoc = (doc) => {
+        const elements = Array.from(
+          doc.querySelectorAll("div, button, span, li, a"),
+        ).reverse();
+        return elements.find((el) => {
+          if (el.children.length > 2) return false;
+          const text = (el.innerText || el.textContent || "")
+            .trim()
+            .toUpperCase();
+          return keywords.some((kw) => text === kw);
+        });
+      };
+      let found = findInDoc(document);
+      if (found) return found;
+      for (const iframe of Array.from(document.querySelectorAll("iframe"))) {
+        try {
+          const innerDoc =
+            iframe.contentDocument || iframe.contentWindow.document;
+          found = findInDoc(innerDoc);
+          if (found) return found;
+        } catch (e) {}
+      }
+      return null;
+    });
+
+    if (uploadTab && uploadTab.asElement()) {
+      const el = uploadTab.asElement();
+      await page.evaluate((e) => {
+        e.click();
+        if (
+          e.parentElement &&
+          (e.parentElement.tagName === "LI" ||
+            e.parentElement.tagName === "DIV")
+        ) {
+          e.parentElement.click();
+        }
+      }, el);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+
+    const fileInputSelector = "input.upload-input, input[type='file']";
+    let inputHandle = null;
+    const findInputInFrames = async () => {
+      for (const frame of page.frames()) {
+        try {
+          const input = await frame.$(fileInputSelector);
+          if (input) return input;
+        } catch (e) {}
+      }
+      return null;
+    };
+
+    for (let i = 0; i < 15; i++) {
+      inputHandle = await findInputInFrames();
+      if (inputHandle) break;
+      if (i > 0 && i % 4 === 0 && uploadTab && uploadTab.asElement()) {
+        await page.evaluate((e) => e.click(), uploadTab.asElement());
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+
+    if (inputHandle) {
+      await inputHandle.uploadFile(zipPath);
+    } else {
+      throw new Error("Could not find file input");
+    }
+
+    let importBtnClicked = false;
+    for (let i = 0; i < 45; i++) {
+      const btnHandle = await page.evaluateHandle(() => {
+        const keywords = [
+          "IMPORT",
+          "IMPORTER",
+          "AJOUTER",
+          "ADD",
+          "VALIDER",
+          "OK",
+        ];
+        const findInDoc = (doc) => {
+          const buttons = Array.from(
+            doc.querySelectorAll(
+              "button, .button, div[role='button'], .right-magnet",
+            ),
+          );
+          return buttons.find((b) => {
+            const text = (b.innerText || "").trim().toUpperCase();
+            const isVisible = b.offsetWidth > 0 && b.offsetHeight > 0;
+            return (
+              isVisible &&
+              keywords.some(
+                (kw) => text === kw || (text.length < 15 && text.includes(kw)),
+              ) &&
+              !b.disabled &&
+              !b.classList.contains("disabled")
+            );
+          });
+        };
+        let f = findInDoc(document);
+        if (f) return f;
+        for (const frame of Array.from(document.querySelectorAll("iframe"))) {
+          try {
+            const inner = frame.contentDocument || frame.contentWindow.document;
+            f = findInDoc(inner);
+            if (f) return f;
+          } catch (e) {}
+        }
+        return null;
+      });
+
+      if (btnHandle && btnHandle.asElement()) {
+        const el = btnHandle.asElement();
+        await page.evaluate((e) => {
+          e.click();
+          if (e.parentElement) e.parentElement.click();
+        }, el);
+        importBtnClicked = true;
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+
+    const saveBtnHandle = await page.evaluateHandle(() => {
+      const keywords = ["ENREGISTRER", "SAVE", "PUBLIER", "PUBLISH"];
+      const buttons = Array.from(
+        document.querySelectorAll("button, .button, .right-magnet"),
+      );
+      return buttons.find((b) => {
+        const text = (b.innerText || b.textContent || "").trim().toUpperCase();
+        return keywords.some((kw) => text.includes(kw)) && !b.disabled;
+      });
+    });
+
+    if (saveBtnHandle && saveBtnHandle.asElement()) {
+      await saveBtnHandle.asElement().click();
+    } else {
+      await page.click("button.right-magnet").catch(() => {});
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   } catch (error) {
-    console.error("An error occurred:", error);
-    // Take a screenshot for debugging if it fails
     await page.screenshot({ path: "error_screenshot.png" });
     process.exit(1);
   } finally {
