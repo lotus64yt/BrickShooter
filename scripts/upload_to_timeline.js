@@ -96,8 +96,9 @@ async function createPyZip(zipPath) {
       await new Promise((r) => setTimeout(r, 4000));
     }
 
-    const addEventSelector = "button.cell.right-magnet.no-margin.ng-scope";
-    await page.waitForSelector(addEventSelector);
+    const addEventSelector =
+      "button.cell.right-magnet.no-margin.ng-scope, button.cell.right-magnet.no-margin";
+    await page.waitForSelector(addEventSelector, { timeout: 90000 });
     await page.click(addEventSelector);
 
     const titleSelector =
