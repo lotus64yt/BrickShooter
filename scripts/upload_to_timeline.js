@@ -2,31 +2,22 @@ const puppeteer = require("puppeteer");
 const path = require("path");
 const fs = require("fs");
 const archiver = require("archiver");
-const glob = require("glob");
 
 async function createPyZip(zipPath) {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(zipPath);
     const archive = archiver("zip", { zlib: { level: 9 } });
-
-    output.on("close", () => {
-      resolve();
-    });
+    output.on("close", () => resolve());
     archive.on("error", (err) => reject(err));
-
     archive.pipe(output);
-
     const { globSync } = require("glob");
     const pyFiles = globSync("**/*.py", {
       cwd: __dirname.replace("/scripts", ""),
       ignore: ["node_modules/**", ".venv/**", "venv/**"],
     });
-
-    if (pyFiles.length > 0) {
-      for (const file of pyFiles) {
-        const fullPath = path.join(__dirname.replace("/scripts", ""), file);
-        archive.file(fullPath, { name: file });
-      }
+    for (const file of pyFiles) {
+      const fullPath = path.join(__dirname.replace("/scripts", ""), file);
+      archive.file(fullPath, { name: file });
     }
     archive.finalize();
   });
@@ -58,52 +49,62 @@ async function createPyZip(zipPath) {
   );
 
   try {
-    await page.goto(timelineUrl);
+    console.log("[1] Navigating to timeline...");
+    await page.goto(timelineUrl, { waitUntil: "networkidle2", timeout: 60000 });
+    console.log("[2] URL:", page.url(), "| Title:", await page.title());
 
-    try {
-      await Promise.race([
-        page.waitForSelector("#username", { timeout: 15000 }),
-        page.waitForSelector("button.cell.right-magnet", { timeout: 15000 }),
-      ]);
-    } catch (e) {}
+    const hasLogin = await page.$("#username");
+    console.log("[3] Login page detected:", !!hasLogin);
 
-    if (await page.$("#username")) {
+    if (hasLogin) {
       await page.type("#username", username);
       await page.type("#password", password);
       await Promise.all([
         page.click("#kc-login"),
         page
-          .waitForNavigation({ waitUntil: "load", timeout: 60000 })
+          .waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 })
           .catch(() => {}),
       ]);
-      await new Promise((resolve) => setTimeout(resolve, 8000));
+      console.log("[4] After login. URL:", page.url());
+      await new Promise((r) => setTimeout(r, 5000));
     }
 
     for (let retry = 0; retry < 3; retry++) {
-      await page.goto(timelineUrl, { waitUntil: "load" });
-      await new Promise((r) => setTimeout(r, 6000));
+      console.log(`[5] Timeline nav attempt ${retry + 1}`);
+      await page.goto(timelineUrl, {
+        waitUntil: "networkidle0",
+        timeout: 60000,
+      });
+      await new Promise((r) => setTimeout(r, 8000));
 
+      const url = page.url();
+      const title = await page.title();
       const is404 = await page.evaluate(
         () =>
           document.body.innerText.includes("404") ||
           document.body.innerText.includes("Oops") ||
           document.title.includes("Error"),
       );
+      console.log(`[5] URL=${url} | Title=${title} | is404=${is404}`);
 
-      if (!is404 && page.url().includes("timelinegenerator")) {
+      if (!is404 && url.includes("timelinegenerator")) {
+        console.log("[6] Timeline reached OK.");
         break;
       }
+      console.log(`[5] Not on timeline, retrying in 4s...`);
       await new Promise((r) => setTimeout(r, 4000));
     }
 
     const addEventSelector =
       "button.cell.right-magnet.no-margin.ng-scope, button.cell.right-magnet.no-margin";
+    console.log("[7] Waiting for 'Add event' button...");
     await page.waitForSelector(addEventSelector, { timeout: 90000 });
+    console.log("[8] Button found, clicking...");
     await page.click(addEventSelector);
 
     const titleSelector =
       'input[placeholder="Information bubble"], input.ten.cell';
-    await page.waitForSelector(titleSelector);
+    await page.waitForSelector(titleSelector, { timeout: 30000 });
     await page.type(titleSelector, commitMessage);
 
     await page.click('div.drawing-zone[role="textbox"]').catch(() => {});
@@ -279,8 +280,9 @@ async function createPyZip(zipPath) {
     }
 
     await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.log("[OK] Event published successfully.");
   } catch (error) {
-    console.error(error);
+    console.error("[ERROR]", error.message);
     await page.screenshot({ path: "error_screenshot.png" });
     process.exit(1);
   } finally {
