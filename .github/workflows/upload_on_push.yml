@@ -23,8 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          # Install necessary libraries for Chromium to run on Ubuntu
+          npm install puppeteer archiver glob
           sudo apt-get update
           sudo apt-get install -y libgbm-dev
 
