@@ -328,7 +328,7 @@ class Board:
             
             if anim['type'] == 'move':
                 anim['pos'] = anim['start'].lerp(anim['end'], anim['progress'])
-                anim['history'].append(anim['pos'].copy())
+                anim['history'].append(pygame.Vector2(anim['pos']))
                 if len(anim['history']) > 8:
                     anim['history'].pop(0)
             elif anim['type'] == 'score_text':
