@@ -29,7 +29,7 @@ async function createPyZip(zipPath) {
     archive.on("error", (err) => reject(err));
     archive.pipe(output);
 
-    const pyFiles = globSync("**/*.py", {
+    const pyFiles = globSync("**/*", {
       cwd: __dirname.replace("/scripts", ""),
       ignore: ["node_modules/**", ".venv/**", "venv/**"],
     });
