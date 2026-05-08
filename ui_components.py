@@ -12,10 +12,9 @@ class Button:
     def draw(self, surface):
         color = COLOR_BUTTON_HOVER if self.is_hovered else COLOR_BUTTON
         
-        # Shadow/Border effect
         border_rect = self.rect.inflate(4, 4)
-        pygame.draw.rect(surface, COLOR_ACCENT, border_rect, border_radius=12)
-        pygame.draw.rect(surface, color, self.rect, border_radius=10)
+        pygame.draw.rect(surface, COLOR_ACCENT, border_rect, 0, 12)
+        pygame.draw.rect(surface, color, self.rect, 0, 10)
         
         text_surf = self.font.render(self.text, True, COLOR_TEXT)
         text_rect = text_surf.get_rect(center=self.rect.center)
