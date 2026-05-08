@@ -6,14 +6,29 @@ const fs = require("fs");
 
 async function createPyZip(zipPath) {
   const archiverModule = await import("archiver");
-  const archiverFn = archiverModule.default;
+  const globModule = await import("glob");
+  const globSync =
+    globModule.globSync ||
+    globModule.sync ||
+    globModule.default?.globSync ||
+    globModule.default?.sync ||
+    (typeof require("glob") === "function"
+      ? require("glob")
+      : require("glob").globSync || require("glob").sync);
+
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(zipPath);
-    const archive = archiverFn("zip", { zlib: { level: 9 } });
+    let archive;
+    if (archiverModule.ZipArchive) {
+      archive = new archiverModule.ZipArchive({ zlib: { level: 9 } });
+    } else {
+      const archiverFn = archiverModule.default || archiverModule;
+      archive = archiverFn("zip", { zlib: { level: 9 } });
+    }
     output.on("close", () => resolve());
     archive.on("error", (err) => reject(err));
     archive.pipe(output);
-    const { globSync } = require("glob");
+
     const pyFiles = globSync("**/*.py", {
       cwd: __dirname.replace("/scripts", ""),
       ignore: ["node_modules/**", ".venv/**", "venv/**"],
