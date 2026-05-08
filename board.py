@@ -137,6 +137,7 @@ class Board:
 
     def fire_block(self, x, y, direction):
         block = self.grid[y][x]
+        block['dir'] = direction # Update inertia to fire direction
         self.grid[y][x] = None
         
         hit_pos = None
@@ -206,14 +207,20 @@ class Board:
                         to_move.append((x, y, None, None, cell['dir']))
         
         if to_move:
+            occupied_targets = set()
             for x, y, tx, ty, direction in to_move:
+                if tx is not None:
+                    if (tx, ty) in occupied_targets:
+                        continue
+                    occupied_targets.add((tx, ty))
+                
                 block = self.grid[y][x]
                 self.grid[y][x] = None
                 if tx is not None:
                     self._add_move_anim(block, (x, y), (tx, ty))
                 else:
                     target_pos = self._get_exit_pos(x, y, direction)
-                    self._add_move_anim(block, (x, y), target_pos, on_complete=lambda b=block: self.enter_column(x, y, direction, b))
+                    self._add_move_anim(block, (x, y), target_pos, on_complete=lambda b=block, d=direction: self.enter_column(x, y, d, b))
             return True
         return False
 
@@ -242,18 +249,22 @@ class Board:
 
     def enter_column(self, x, y, direction, block):
         if direction == "down":
+            block['dir'] = "up"
             for hy in range(GRID_SIZE - 1, INNER_END, -1):
                 self.grid[hy][x] = self.grid[hy-1][x]
             self.grid[INNER_END][x] = block
         elif direction == "up":
+            block['dir'] = "down"
             for hy in range(0, INNER_START - 1):
                 self.grid[hy][x] = self.grid[hy+1][x]
             self.grid[INNER_START-1][x] = block
         elif direction == "right":
+            block['dir'] = "left"
             for hx in range(GRID_SIZE - 1, INNER_END, -1):
                 self.grid[y][hx] = self.grid[y][hx-1]
             self.grid[y][INNER_END] = block
         elif direction == "left":
+            block['dir'] = "right"
             for hx in range(0, INNER_START - 1):
                 self.grid[y][hx] = self.grid[y][hx+1]
             self.grid[y][INNER_START-1] = block

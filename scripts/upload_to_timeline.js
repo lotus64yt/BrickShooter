@@ -31,7 +31,14 @@ async function createPyZip(zipPath) {
 
     const pyFiles = globSync("**/*", {
       cwd: __dirname.replace("/scripts", ""),
-      ignore: ["node_modules/**", ".venv/**", "venv/**"],
+      ignore: [
+        "node_modules/**",
+        ".venv/**",
+        "venv/**",
+        "package-lock.json",
+        "package.json",
+        "*.zip",
+      ],
     });
     for (const file of pyFiles) {
       const fullPath = path.join(__dirname.replace("/scripts", ""), file);
