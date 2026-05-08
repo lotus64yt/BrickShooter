@@ -6,10 +6,10 @@ const fs = require("fs");
 
 async function createPyZip(zipPath) {
   const archiverModule = await import("archiver");
-  const archiver = archiverModule.default || archiverModule;
+  const archiverFn = archiverModule.default;
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(zipPath);
-    const archive = archiver("zip", { zlib: { level: 9 } });
+    const archive = archiverFn("zip", { zlib: { level: 9 } });
     output.on("close", () => resolve());
     archive.on("error", (err) => reject(err));
     archive.pipe(output);
