@@ -3,9 +3,10 @@ const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(StealthPlugin());
 const path = require("path");
 const fs = require("fs");
-const archiver = require("archiver");
 
 async function createPyZip(zipPath) {
+  const archiverModule = await import("archiver");
+  const archiver = archiverModule.default || archiverModule;
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(zipPath);
     const archive = archiver("zip", { zlib: { level: 9 } });
