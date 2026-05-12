@@ -32,3 +32,5 @@ BOARD_OFFSET_Y = (SCREEN_HEIGHT - BOARD_SIZE) // 2
 
 STATE_MENU = "menu"
 STATE_GAME = "game"
+STATE_SCORES = "scores"
+STATE_SETTINGS = "settings"

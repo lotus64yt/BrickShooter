@@ -1,7 +1,10 @@
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, STATE_MENU, STATE_GAME, COLOR_BG, COLOR_TEXT, COLOR_ACCENT, BOARD_OFFSET_X, BOARD_OFFSET_Y, CELL_SIZE, GRID_SIZE
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, STATE_MENU, STATE_GAME, STATE_SCORES, STATE_SETTINGS, COLOR_BG, COLOR_TEXT, COLOR_ACCENT, BOARD_OFFSET_X, BOARD_OFFSET_Y, CELL_SIZE, GRID_SIZE
 from menu import Menu
 from board import Board
+from score_screen import ScoreScreen
+from score_manager import ScoreManager
+from settings_screen import SettingsScreen
 
 class GameManager:
     def __init__(self):
@@ -14,6 +17,9 @@ class GameManager:
         self.current_state = STATE_MENU
         self.menu = Menu(self)
         self.board = Board(self)
+        self.score_screen = ScoreScreen(self)
+        self.settings_screen = SettingsScreen(self)
+        self.score_manager = ScoreManager()
         self.level = 0
         self.score = 0
         
@@ -21,9 +27,19 @@ class GameManager:
         self.font_game = pygame.font.SysFont('Arial', 24, bold=True)
 
     def change_state(self, new_state):
+        if self.current_state == STATE_GAME and new_state == STATE_MENU:
+            if self.score > 0:
+                self.score_manager.save_score(self.score, self.level)
+                self.score = 0
+                self.level = 0
+
         self.current_state = new_state
         if new_state == STATE_GAME:
             self.board.generate_level(self.level)
+        elif new_state == STATE_SCORES:
+            self.score_screen.load_scores()
+        elif new_state == STATE_SETTINGS:
+            pass
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -46,6 +62,10 @@ class GameManager:
                     elif event.key == pygame.K_p:
                         self.level = max(0, self.level - 1)
                         self.board.generate_level(self.level)
+            elif self.current_state == STATE_SCORES:
+                self.score_screen.handle_events(event)
+            elif self.current_state == STATE_SETTINGS:
+                self.settings_screen.handle_events(event)
 
     def add_score(self, pts):
         self.score += pts
@@ -59,10 +79,18 @@ class GameManager:
                 if self.board.is_cleared():
                     self.level += 1
                     self.board.generate_level(self.level)
+        elif self.current_state == STATE_SCORES:
+            self.score_screen.update()
+        elif self.current_state == STATE_SETTINGS:
+            self.settings_screen.update()
 
     def draw(self):
         if self.current_state == STATE_MENU:
             self.menu.draw(self.screen)
+        elif self.current_state == STATE_SCORES:
+            self.score_screen.draw(self.screen)
+        elif self.current_state == STATE_SETTINGS:
+            self.settings_screen.draw(self.screen)
         elif self.current_state == STATE_GAME:
             self.screen.fill(COLOR_BG)
             self.board.draw(self.screen)
@@ -75,6 +103,10 @@ class GameManager:
             
             hint_text = self.font_game.render("N: Suivant | P: Précédent | Echap: Menu", True, (100, 100, 100))
             self.screen.blit(hint_text, (SCREEN_WIDTH // 2 - hint_text.get_width() // 2, SCREEN_HEIGHT - 40))
+            
+            if self.settings_screen.settings_manager.get("show_fps"):
+                fps_text = self.font_game.render(f"FPS: {int(self.clock.get_fps())}", True, (0, 255, 0))
+                self.screen.blit(fps_text, (SCREEN_WIDTH - 100, 20))
         
         pygame.display.flip()
 

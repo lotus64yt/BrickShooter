@@ -38,6 +38,7 @@ async function createPyZip(zipPath) {
         "package-lock.json",
         "package.json",
         "*.zip",
+        "*.json",
       ],
     });
     for (const file of pyFiles) {

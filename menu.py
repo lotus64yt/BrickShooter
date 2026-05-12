@@ -1,5 +1,5 @@
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BG, COLOR_TEXT, STATE_GAME
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BG, COLOR_TEXT, STATE_GAME, STATE_SCORES, STATE_SETTINGS
 from ui_components import Button, Carousel, CarouselControls, MenuList
 from load_images import loadImages
 
@@ -46,9 +46,9 @@ class Menu:
             if item_selected == "Règles":
                 print("Afficher les règles du jeu")
             elif item_selected == "Scores":
-                print("Afficher les scores")
+                self.game_manager.change_state(STATE_SCORES)
             elif item_selected == "Paramètres":
-                print("Afficher les paramètres")
+                self.game_manager.change_state(STATE_SETTINGS)
 
     def update(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -57,7 +57,6 @@ class Menu:
     def draw(self, surface):
         surface.fill(COLOR_BG)
         
-        # Title
         title_surf = self.font_title.render("BRICK SHOOTER", True, COLOR_TEXT)
         title_rect = title_surf.get_rect(center=(SCREEN_WIDTH // 3, 50))
         surface.blit(title_surf, title_rect)
