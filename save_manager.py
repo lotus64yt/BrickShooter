@@ -4,6 +4,7 @@ import time
 import uuid
 
 class SaveManager:
+
     def __init__(self, directory="store/saves"):
         self.directory = directory
         if not os.path.exists(directory):

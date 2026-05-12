@@ -7,6 +7,7 @@ from constants import (
 from levels import LEVEL_DATA
 
 class Board:
+
     def __init__(self, game_manager):
         self.game_manager = game_manager
         self.grid = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
@@ -23,10 +24,8 @@ class Board:
             self.level_seed = random.randint(0, 999999)
         else:
             self.level_seed = seed
-            
         self.rng.seed(self.level_seed)
         self.grid = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
-        
         if level_idx < len(LEVEL_DATA):
             level_map = LEVEL_DATA[level_idx]
             for row_idx, row_str in enumerate(level_map):
@@ -41,7 +40,6 @@ class Board:
         else:
             num_colors = min(2 + level_idx, len(BLOCK_COLORS))
             available_colors = BLOCK_COLORS[:num_colors]
-            
             fill_density = 0.3 + min(0.4, (level_idx - len(LEVEL_DATA)) * 0.05)
             for y in range(INNER_START + 1, INNER_END - 1):
                 for x in range(INNER_START + 1, INNER_END - 1):
@@ -54,41 +52,34 @@ class Board:
                                 h_count += 1
                                 if x > INNER_START + 2 and self.grid[y][x-2] and self.grid[y][x-2]['color'] == color:
                                     h_count += 1
-                            
                             v_count = 0
                             if y > INNER_START + 1 and self.grid[y-1][x] and self.grid[y-1][x]['color'] == color:
                                 v_count += 1
                                 if y > INNER_START + 2 and self.grid[y-2][x] and self.grid[y-2][x]['color'] == color:
                                     v_count += 1
-                            
                             if h_count < 2 and v_count < 2:
                                 self.grid[y][x] = {
                                     'color': color,
                                     'dir': None
                                 }
                                 break
-        
         num_colors = min(2 + level_idx, len(BLOCK_COLORS))
         available_colors = BLOCK_COLORS[:num_colors]
-        
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 if self.grid[y][x]: continue
-                
                 is_in_center = (INNER_START <= x < INNER_END) and (INNER_START <= y < INNER_END)
                 if not is_in_center:
                     is_top_left = (x < INNER_START and y < INNER_START)
                     is_top_right = (x >= INNER_END and y < INNER_START)
                     is_bottom_left = (x < INNER_START and y >= INNER_END)
                     is_bottom_right = (x >= INNER_END and y >= INNER_END)
-                    
                     if not (is_top_left or is_top_right or is_bottom_left or is_bottom_right):
                         direction = None
                         if y < INNER_START: direction = "down"
                         elif y >= INNER_END: direction = "up"
                         elif x < INNER_START: direction = "right"
                         elif x >= INNER_END: direction = "left"
-                        
                         self.grid[y][x] = {
                             'color': self.rng.choice(available_colors),
                             'dir': direction
@@ -96,7 +87,6 @@ class Board:
 
     def get_firing_head(self, x, y):
         if not (0 <= x < GRID_SIZE and 0 <= y < GRID_SIZE): return None, None
-        
         if INNER_START <= x < INNER_END and 0 <= y < INNER_START:
             for hy in range(INNER_START - 1, -1, -1):
                 if self.grid[hy][x]: return (x, hy), "down"
@@ -120,25 +110,21 @@ class Board:
             if self.grid[y][INNER_START]: return False
         elif direction == "left":
             if self.grid[y][INNER_END - 1]: return False
-            
         if INNER_START <= x < INNER_END:
             for hy in range(INNER_START, INNER_END):
                 if self.grid[hy][x]: return True
         if INNER_START <= y < INNER_END:
             for hx in range(INNER_START, INNER_END):
                 if self.grid[y][hx]: return True
-        
         return False
 
     def handle_click(self, mouse_pos):
         if self.animations: return
-        
         rel_x = mouse_pos[0] - BOARD_OFFSET_X
         rel_y = mouse_pos[1] - BOARD_OFFSET_Y
         if 0 <= rel_x < GRID_SIZE * CELL_SIZE and 0 <= rel_y < GRID_SIZE * CELL_SIZE:
             grid_x = rel_x // CELL_SIZE
             grid_y = rel_y // CELL_SIZE
-            
             head, direction = self.get_firing_head(grid_x, grid_y)
             if head and self.is_line_firable(grid_x, grid_y, direction):
                 self.fire_block(head[0], head[1], direction)
@@ -149,7 +135,6 @@ class Board:
         block = self.grid[y][x]
         block['dir'] = direction
         self.grid[y][x] = None
-        
         hit_pos = None
         if direction == "down":
             for hy in range(INNER_START, INNER_END):
@@ -171,7 +156,6 @@ class Board:
                 if self.grid[y][hx]:
                     hit_pos = (hx, y)
                     break
-
         if hit_pos:
             tx, ty = x, y
             if direction == "down":
@@ -186,7 +170,6 @@ class Board:
             elif direction == "left":
                 for hx in range(x - 1, hit_pos[0], -1):
                     tx = hx
-
             if (tx, ty) != (x, y):
                 self._add_move_anim(block, (x, y), (tx, ty))
             else:
@@ -194,7 +177,6 @@ class Board:
         else:
             target_pos = self._get_exit_pos(x, y, direction)
             self._add_move_anim(block, (x, y), target_pos, on_complete=lambda b=block: self.enter_column(x, y, direction, b))
-        
         self.refill_column_or_row(x, y, direction)
 
     def apply_inertia(self):
@@ -208,14 +190,12 @@ class Board:
                     elif cell['dir'] == "up": dy = -1
                     elif cell['dir'] == "right": dx = 1
                     elif cell['dir'] == "left": dx = -1
-                    
                     nx, ny = x + dx, y + dy
                     if INNER_START <= nx < INNER_END and INNER_START <= ny < INNER_END:
                         if not self.grid[ny][nx]:
                             to_move.append((x, y, nx, ny, cell['dir']))
                     else:
                         to_move.append((x, y, None, None, cell['dir']))
-        
         if to_move:
             occupied_targets = set()
             for x, y, tx, ty, direction in to_move:
@@ -223,7 +203,6 @@ class Board:
                     if (tx, ty) in occupied_targets:
                         continue
                     occupied_targets.add((tx, ty))
-                
                 block = self.grid[y][x]
                 self.grid[y][x] = None
                 if tx is not None:
@@ -285,18 +264,14 @@ class Board:
             num_blocks = len(matches)
             score = 30 * (2 ** (num_blocks - 3))
             self.game_manager.add_score(score)
-            
             avg_x = sum(m[0] for m in matches) / num_blocks
             avg_y = sum(m[1] for m in matches) / num_blocks
-            
             for mx, my in matches:
                 block = self.grid[my][mx]
                 self._add_fade_anim(block, (mx, my))
                 self.grid[my][mx] = None
-            
             self._add_score_text_anim(score, (avg_x, avg_y))
             return True
-        
         if self.apply_inertia():
             return True
         return False
@@ -333,7 +308,6 @@ class Board:
                         self.game_manager.auto_save()
                         self.needs_save = False
             return
-
         all_finished = True
         for anim in self.animations:
             anim['elapsed'] += dt
@@ -349,7 +323,6 @@ class Board:
             else:
                 anim['progress'] = anim['elapsed'] / anim['duration']
                 all_finished = False
-            
             if anim['type'] == 'move':
                 anim['pos'] = anim['start'].lerp(anim['end'], anim['progress'])
                 anim['history'].append(pygame.Vector2(anim['pos']))
@@ -357,7 +330,6 @@ class Board:
                     anim['history'].pop(0)
             elif anim['type'] == 'score_text':
                 anim['pos'].y = anim['start_pos'].y - (anim['progress'] * 40)
-
         if all_finished:
             self.animations = []
 
@@ -378,7 +350,6 @@ class Board:
         component = []
         stack = [(start_x, start_y)]
         visited = set([(start_x, start_y)])
-        
         while stack:
             x, y = stack.pop()
             component.append((x, y))
@@ -394,7 +365,6 @@ class Board:
     def refill_column_or_row(self, x, y, direction):
         num_colors = min(2 + self.level, len(BLOCK_COLORS))
         available_colors = BLOCK_COLORS[:num_colors]
-
         if direction == "down":
             for hy in range(y, 0, -1):
                 self.grid[hy][x] = self.grid[hy-1][x]
@@ -420,12 +390,10 @@ class Board:
         if 0 <= rel_x < GRID_SIZE * CELL_SIZE and 0 <= rel_y < GRID_SIZE * CELL_SIZE:
             grid_x = rel_x // CELL_SIZE
             grid_y = rel_y // CELL_SIZE
-
         hovered_head, direction = self.get_firing_head(grid_x, grid_y)
         firable = False
         if hovered_head:
             firable = self.is_line_firable(grid_x, grid_y, direction)
-
         center_rect = pygame.Rect(
             BOARD_OFFSET_X + INNER_START * CELL_SIZE,
             BOARD_OFFSET_Y + INNER_START * CELL_SIZE,
@@ -434,7 +402,6 @@ class Board:
         )
         pygame.draw.rect(surface, (25, 25, 25), center_rect)
         pygame.draw.rect(surface, (50, 50, 50), center_rect, 2)
-
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 cell = self.grid[y][x]
@@ -450,7 +417,6 @@ class Board:
                             self._draw_arrow(surface, block_rect, direction)
                         else:
                             self._draw_cross(surface, block_rect)
-
         for anim in self.animations:
             if anim['type'] == 'move':
                 for i, h_pos in enumerate(anim['history']):
@@ -471,7 +437,6 @@ class Board:
         color = cell['color']
         if alpha < 255:
             color = [int(c * (alpha/255) + 18 * (1 - alpha/255)) for c in color]
-
         rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
         block_rect = rect.inflate(-6, -6)
         pygame.draw.rect(surface, color, block_rect, border_radius=6)
@@ -516,11 +481,9 @@ class Board:
         return True
 
     def get_state_seed(self):
-        # Encodage de la grille en une chaîne de caractères (graine d'état)
         chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
         dirs = {None: 0, "up": 1, "down": 2, "left": 3, "right": 4}
         seed_parts = []
-        
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 cell = self.grid[y][x]
@@ -534,16 +497,13 @@ class Board:
                         seed_parts.append(chars[val])
                     except ValueError:
                         seed_parts.append(chars[0])
-        
         return "".join(seed_parts)
 
     def load_from_state_seed(self, state_seed):
         chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
         dirs = {0: None, 1: "up", 2: "down", 3: "left", 4: "right"}
-        
         if len(state_seed) != GRID_SIZE * GRID_SIZE:
             return False
-            
         new_grid = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
         for i, char in enumerate(state_seed):
             y = i // GRID_SIZE
@@ -559,6 +519,5 @@ class Board:
                         'color': BLOCK_COLORS[color_idx],
                         'dir': dirs.get(dir_idx)
                     }
-        
         self.grid = new_grid
         return True

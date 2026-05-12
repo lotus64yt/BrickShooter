@@ -2,6 +2,7 @@ import json
 import os
 
 class SettingsManager:
+
     def __init__(self, filename="config.json"):
         self.filename = filename
         self.defaults = {

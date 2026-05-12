@@ -1,6 +1,5 @@
 import pygame
 import os
-
 def loadImages(path):
     images = {}
     filesInFolder = os.listdir(path)

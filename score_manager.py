@@ -2,6 +2,7 @@ import json
 import os
 
 class ScoreManager:
+
     def __init__(self, filename="store/scores.json"):
         self.filename = filename
         self.ensure_directory()
@@ -13,19 +14,16 @@ class ScoreManager:
 
     def save_score(self, score, level, level_seed=None, state_seed=None, session_id=None):
         scores = self.load_scores()
-        
         updated = False
         if session_id:
             for s in scores:
                 if s.get('session_id') == session_id:
-                    # On met à jour si le nouveau score est meilleur ou égal
                     s['score'] = max(score, s.get('score', 0))
                     s['level'] = max(level, s.get('level', 0))
                     s['level_seed'] = level_seed
                     s['state_seed'] = state_seed
                     updated = True
                     break
-        
         if not updated:
             scores.append({
                 "score": score,
@@ -34,7 +32,6 @@ class ScoreManager:
                 "state_seed": state_seed,
                 "session_id": session_id
             })
-        
         try:
             with open(self.filename, 'w') as f:
                 json.dump(scores, f, indent=4)

@@ -1,12 +1,4 @@
-
-# créations des niveaux pour Brick Shooter
-# chaque niveau est une grille de 10x10 grid
-# 'X' représente une cellule vide.
-# '0'-'7' represente l'index dans BLOCK_COLORS.
-
-
 LEVEL_DATA = [
-    # Level 1 - Le classique
     [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
@@ -19,7 +11,6 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 2 - La croix
     [
         "XXXXXXXXXX",
         "XXXX0XXXXX",
@@ -32,7 +23,6 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 3 - Le rond
     [
         "XXXXXXXXXX",
         "XXX010XXXX",
@@ -45,7 +35,6 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 4 - Le Fromage
     [
         "XXXXXXXXXX",
         "XX010101XX",
@@ -58,7 +47,6 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 5 - Les Diamants Jumeaux
     [
         "XXXXXXXXXX",
         "XXXX0XXXXX",
@@ -71,7 +59,6 @@ LEVEL_DATA = [
         "XXXX2XXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 6 - Les deux iles
     [
         "XXXXXXXXXX",
         "XX01XXXXXX",
@@ -84,7 +71,6 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 7 - The Hourglass
     [
         "XXXXXXXXXX",
         "XX012321XX",
@@ -97,7 +83,6 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 8 - Scattered Gems
     [
         "XXXXXXXXXX",
         "XX0XX1XX2X",
@@ -110,7 +95,6 @@ LEVEL_DATA = [
         "XX2XX0XX1X",
         "XXXXXXXXXX",
     ],
-    # Level 9 - The Walled Garden
     [
         "XXXXXXXXXX",
         "XX012301XX",
@@ -123,7 +107,6 @@ LEVEL_DATA = [
         "XXXXXXXXXX",
         "XXXXXXXXXX",
     ],
-    # Level 10 - Spiral Chaos
     [
         "XXXXXXXXXX",
         "XX012345XX",
