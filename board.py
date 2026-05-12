@@ -137,7 +137,7 @@ class Board:
 
     def fire_block(self, x, y, direction):
         block = self.grid[y][x]
-        block['dir'] = direction # Update inertia to fire direction
+        block['dir'] = direction
         self.grid[y][x] = None
         
         hit_pos = None
