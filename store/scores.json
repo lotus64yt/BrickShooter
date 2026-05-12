@@ -1,22 +1,9 @@
 [
-    {"score": 5000, "level": 12},
-    {"score": 4500, "level": 10},
-    {"score": 4200, "level": 9},
-    {"score": 3800, "level": 8},
-    {"score": 3500, "level": 7},
-    {"score": 3200, "level": 7},
-    {"score": 3000, "level": 6},
-    {"score": 2800, "level": 5},
-    {"score": 2500, "level": 5},
-    {"score": 2200, "level": 4},
-    {"score": 2000, "level": 4},
-    {"score": 1800, "level": 3},
-    {"score": 1500, "level": 3},
-    {"score": 1200, "level": 2},
-    {"score": 1000, "level": 2},
-    {"score": 800, "level": 1},
-    {"score": 500, "level": 1},
-    {"score": 300, "level": 0},
-    {"score": 200, "level": 0},
-    {"score": 100, "level": 0}
+    {
+        "score": 90,
+        "level": 1,
+        "level_seed": 340188,
+        "state_seed": "000NMMNNMNLNN000000MLNNNLMMMM000000LLNMLNLMLM000ggg0000000000VXXhhh0000100000XXXhhg0000200000XVXhgg0012321000WWVghh0000200000WVVgfh0000100000VXXgff0000000000VVWggf0000000000VWXghf0000000000WXXhfg0000000000XVW000BCBDBBBDCD000000DBBCCDBBDD000000BDBCDCDDDC000",
+        "session_id": "105f7c30"
+    }
 ]

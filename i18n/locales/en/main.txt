@@ -1,0 +1,42 @@
+{
+    "menu": {
+        "title": "BRICK SHOOTER",
+        "play": "Play",
+        "rules": "Rules",
+        "scores": "Scores",
+        "settings": "Settings"
+    },
+    "ui": {
+        "back": "Back",
+        "resume": "Resume",
+        "level": "Level",
+        "score": "Score",
+        "status": "Status",
+        "rank": "Rank",
+        "ongoing": "Ongoing",
+        "finished": "Score",
+        "fps": "FPS: {fps}",
+        "hints": "N: Next | P: Previous | Esc: Menu"
+    },
+    "settings": {
+        "volume_music": "Music Volume",
+        "volume_sfx": "SFX Volume",
+        "fullscreen": "Full Screen",
+        "difficulty": "Difficulty",
+        "language": "Language",
+        "show_fps": "Show FPS",
+        "difficulty_options": {
+            "Facile": "Easy",
+            "Normal": "Normal",
+            "Difficile": "Hard"
+        },
+        "language_options": {
+            "Français": "French",
+            "Anglais": "English",
+            "Espagnol": "Spanish"
+        }
+    },
+    "rules": {
+        "content": "Shoot bricks from the edges toward the center.\nMatch 3 bricks of the same color to clear them.\nClear all bricks in the center to reach the next level."
+    }
+}

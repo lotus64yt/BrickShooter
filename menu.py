@@ -16,7 +16,7 @@ class Menu:
         
         self.play_button = Button(
             btn_x, btn_y, btn_width, btn_height, 
-            "Jouer", self.font_button, 
+            self.game_manager.t("menu.play"), self.font_button, 
             action=self.start_game
         )
         
@@ -29,7 +29,11 @@ class Menu:
         
         self.menu_list = MenuList(
             50, SCREEN_HEIGHT // 4, 200, 300,
-            ["Règles", "Scores", "Paramètres"],
+            [
+                self.game_manager.t("menu.rules"), 
+                self.game_manager.t("menu.scores"), 
+                self.game_manager.t("menu.settings")
+            ],
             self.font_button
         )
 
@@ -43,11 +47,11 @@ class Menu:
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             item_selected = self.menu_list.get_selected_item()
-            if item_selected == "Règles":
+            if item_selected == self.game_manager.t("menu.rules"):
                 print("Afficher les règles du jeu")
-            elif item_selected == "Scores":
+            elif item_selected == self.game_manager.t("menu.scores"):
                 self.game_manager.change_state(STATE_SCORES)
-            elif item_selected == "Paramètres":
+            elif item_selected == self.game_manager.t("menu.settings"):
                 self.game_manager.change_state(STATE_SETTINGS)
 
     def update(self):
@@ -57,7 +61,7 @@ class Menu:
     def draw(self, surface):
         surface.fill(COLOR_BG)
         
-        title_surf = self.font_title.render("BRICK SHOOTER", True, COLOR_TEXT)
+        title_surf = self.font_title.render(self.game_manager.t("menu.title"), True, COLOR_TEXT)
         title_rect = title_surf.get_rect(center=(SCREEN_WIDTH // 3, 50))
         surface.blit(title_surf, title_rect)
         

@@ -17,7 +17,7 @@ class SettingsScreen:
         
         self.back_button = Button(
             20, 20, 120, 40, 
-            "Retour", pygame.font.SysFont("Arial", 20, bold=True),
+            self.game_manager.t("ui.back"), pygame.font.SysFont("Arial", 20, bold=True),
             action=lambda: self.game_manager.change_state(STATE_MENU)
         )
         
@@ -59,7 +59,7 @@ class SettingsScreen:
         surface.fill(COLOR_BG)
         self.back_button.draw(surface)
         
-        title_surf = self.font_title.render("PARAMÈTRES", True, COLOR_ACCENT)
+        title_surf = self.font_title.render(self.game_manager.t("menu.settings").upper(), True, COLOR_ACCENT)
         surface.blit(title_surf, (SCREEN_WIDTH // 2 - title_surf.get_width() // 2, 40))
         
         content_rect = pygame.Rect(50, 160, SCREEN_WIDTH - 100, self.visible_height)
@@ -90,11 +90,12 @@ class SettingsScreen:
             handle_y = bar_y + (-self.scroll_y / (total_height - self.visible_height)) * (bar_h - handle_h)
             pygame.draw.rect(surface, COLOR_ACCENT, (bar_x, handle_y, bar_w, handle_h), 0, 4)
 
-        footer_text = self.font_label.render("Echap: Retour Menu", True, (100, 100, 100))
+        footer_text = self.font_label.render(self.game_manager.t("ui.back") + " (Esc)", True, (100, 100, 100))
         surface.blit(footer_text, (SCREEN_WIDTH // 2 - footer_text.get_width() // 2, SCREEN_HEIGHT - 60))
 
     def draw_setting_row(self, surface, key, spec, rect, screen_offset):
-        label_surf = self.font_label.render(spec["label"], True, COLOR_TEXT)
+        label_text = self.game_manager.t(f"settings.{key}")
+        label_surf = self.font_label.render(label_text, True, COLOR_TEXT)
         surface.blit(label_surf, (20, rect.centery - label_surf.get_height() // 2))
         
         val = spec["val"]
@@ -123,14 +124,24 @@ class SettingsScreen:
         elif type == "choice":
             l_arrow_rect = pygame.Rect(val_center_x - 110, rect.centery - 15, 30, 30)
             self.draw_arrow(surface, l_arrow_rect, "left")
-            val_surf = self.font_val.render(str(val), True, COLOR_TEXT)
+            
+            # Traduction de la valeur affichée pour les choix
+            display_val = self.game_manager.t(f"settings.{key}_options.{val}")
+            val_surf = self.font_val.render(display_val, True, COLOR_TEXT)
+            
             surface.blit(val_surf, (val_center_x - val_surf.get_width() // 2, rect.centery - val_surf.get_height() // 2))
             r_arrow_rect = pygame.Rect(val_center_x + 80, rect.centery - 15, 30, 30)
             self.draw_arrow(surface, r_arrow_rect, "right")
             options = spec["options"]
             idx = options.index(val)
-            self.interactives.append((l_arrow_rect.move(screen_offset), lambda: self.settings_manager.set(key, options[(idx - 1) % len(options)])))
-            self.interactives.append((r_arrow_rect.move(screen_offset), lambda: self.settings_manager.set(key, options[(idx + 1) % len(options)])))
+            
+            def change_choice(new_val):
+                self.settings_manager.set(key, new_val)
+                if key == "language":
+                    self.game_manager.update_language()
+
+            self.interactives.append((l_arrow_rect.move(screen_offset), lambda: change_choice(options[(idx - 1) % len(options)])))
+            self.interactives.append((r_arrow_rect.move(screen_offset), lambda: change_choice(options[(idx + 1) % len(options)])))
 
     def draw_arrow(self, surface, rect, direction):
         color = COLOR_ACCENT

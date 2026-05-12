@@ -1,0 +1,42 @@
+{
+    "menu": {
+        "title": "BRICK SHOOTER",
+        "play": "Jouer",
+        "rules": "Règles",
+        "scores": "Scores",
+        "settings": "Paramètres"
+    },
+    "ui": {
+        "back": "Retour",
+        "resume": "Reprendre",
+        "level": "Niveau",
+        "score": "Score",
+        "status": "Statut",
+        "rank": "Rang",
+        "ongoing": "En cours",
+        "finished": "Score",
+        "fps": "FPS: {fps}",
+        "hints": "N: Suivant | P: Précédent | Echap: Menu"
+    },
+    "settings": {
+        "volume_music": "Volume Musique",
+        "volume_sfx": "Volume Bruitages",
+        "fullscreen": "Plein Écran",
+        "difficulty": "Difficulté",
+        "language": "Langue",
+        "show_fps": "Afficher FPS",
+        "difficulty_options": {
+            "Facile": "Facile",
+            "Normal": "Normal",
+            "Difficile": "Difficile"
+        },
+        "language_options": {
+            "Français": "Français",
+            "Anglais": "Anglais",
+            "Espagnol": "Espagnol"
+        }
+    },
+    "rules": {
+        "content": "Lancez des briques depuis les bords vers le centre.\nAlignez 3 briques de même couleur pour les faire disparaître.\nNettoyez tout le centre pour passer au niveau suivant."
+    }
+}

@@ -17,7 +17,7 @@ class ScoreScreen:
         
         self.back_button = Button(
             20, 20, 120, 40, 
-            "Retour", pygame.font.SysFont("Arial", 20, bold=True),
+            self.game_manager.t("ui.back"), pygame.font.SysFont("Arial", 20, bold=True),
             action=lambda: self.game_manager.change_state(STATE_MENU)
         )
         
@@ -39,13 +39,13 @@ class ScoreScreen:
                     "level_seed": save.get('level_seed'),
                     "state_seed": save.get('state_seed'),
                     "session_id": session_id,
-                    "status": "En cours"
+                    "status": self.game_manager.t("ui.ongoing")
                 })
         
         # Ajouter les scores terminés s'ils ne sont pas déjà présents comme sauvegarde active
         for score in finished_scores:
             if score.get('session_id') not in seen_sessions:
-                score['status'] = "Score"
+                score['status'] = self.game_manager.t("ui.finished")
                 self.scores.append(score)
             else:
                 # Si déjà présent, on peut mettre à jour le statut du score existant
@@ -101,16 +101,16 @@ class ScoreScreen:
         surface.fill(COLOR_BG)
         self.back_button.draw(surface)
         
-        title_surf = self.font_title.render("CLASSEMENT", True, COLOR_ACCENT)
+        title_surf = self.font_title.render(self.game_manager.t("menu.scores").upper(), True, COLOR_ACCENT)
         surface.blit(title_surf, (SCREEN_WIDTH // 2 - title_surf.get_width() // 2, 40))
         
         header_y = 120
         pygame.draw.line(surface, COLOR_ACCENT, (50, header_y + 35), (SCREEN_WIDTH - 50, header_y + 35), 2)
         
-        rank_h = self.font_item.render("Rang", True, COLOR_TEXT)
-        score_h = self.font_item.render("Score", True, COLOR_TEXT)
-        level_h = self.font_item.render("Niveau", True, COLOR_TEXT)
-        status_h = self.font_item.render("Statut", True, COLOR_TEXT)
+        rank_h = self.font_item.render(self.game_manager.t("ui.rank"), True, COLOR_TEXT)
+        score_h = self.font_item.render(self.game_manager.t("ui.score"), True, COLOR_TEXT)
+        level_h = self.font_item.render(self.game_manager.t("ui.level"), True, COLOR_TEXT)
+        status_h = self.font_item.render(self.game_manager.t("ui.status"), True, COLOR_TEXT)
         
         surface.blit(rank_h, (80, header_y))
         surface.blit(score_h, (200, header_y))
@@ -140,8 +140,8 @@ class ScoreScreen:
                 status_val = entry.get('status', 'Score')
                 
                 score_text = self.font_item.render(f"{score_val:,}", True, COLOR_TEXT)
-                level_text = self.font_item.render(f"Niv. {level_val}", True, COLOR_TEXT)
-                status_text = self.font_item.render(status_val, True, (0, 255, 0) if status_val == "En cours" else (150, 150, 150))
+                level_text = self.font_item.render(f"{self.game_manager.t('ui.level')} {level_val}", True, COLOR_TEXT)
+                status_text = self.font_item.render(status_val, True, (0, 255, 0) if status_val == self.game_manager.t("ui.ongoing") else (150, 150, 150))
                 
                 scroll_surface.blit(rank_text, (30, y_pos))
                 scroll_surface.blit(score_text, (150, y_pos))
@@ -158,7 +158,7 @@ class ScoreScreen:
                 btn_color = COLOR_ACCENT if is_resume_hovered else (60, 60, 60)
                 
                 pygame.draw.rect(scroll_surface, btn_color, resume_rect, 0, 5)
-                res_text = self.font_item.render("Reprendre", True, COLOR_TEXT)
+                res_text = self.font_item.render(self.game_manager.t("ui.resume"), True, COLOR_TEXT)
                 res_rect = res_text.get_rect(center=resume_rect.center)
                 scroll_surface.blit(res_text, res_rect)
                 
@@ -179,5 +179,5 @@ class ScoreScreen:
             
             pygame.draw.rect(surface, COLOR_ACCENT, (bar_x, handle_y, bar_w, handle_h), 0, 4)
 
-        footer_text = self.font_item.render("Echap: Retour Menu", True, (100, 100, 100))
+        footer_text = self.font_item.render(self.game_manager.t("ui.back") + " (Esc)", True, (100, 100, 100))
         surface.blit(footer_text, (SCREEN_WIDTH // 2 - footer_text.get_width() // 2, SCREEN_HEIGHT - 60))

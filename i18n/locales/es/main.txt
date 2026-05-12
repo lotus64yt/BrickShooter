@@ -1,0 +1,42 @@
+{
+    "menu": {
+        "title": "BRICK SHOOTER",
+        "play": "Jugar",
+        "rules": "Reglas",
+        "scores": "Puntuaciones",
+        "settings": "Ajustes"
+    },
+    "ui": {
+        "back": "Volver",
+        "resume": "Reanudar",
+        "level": "Nivel",
+        "score": "Puntuación",
+        "status": "Estado",
+        "rank": "Rango",
+        "ongoing": "En curso",
+        "finished": "Puntuación",
+        "fps": "FPS: {fps}",
+        "hints": "N: Siguiente | P: Anterior | Esc: Menú"
+    },
+    "settings": {
+        "volume_music": "Volumen Música",
+        "volume_sfx": "Volumen Efectos",
+        "fullscreen": "Pantalla Completa",
+        "difficulty": "Dificultad",
+        "language": "Idioma",
+        "show_fps": "Mostrar FPS",
+        "difficulty_options": {
+            "Facile": "Fácil",
+            "Normal": "Normal",
+            "Difficile": "Difícil"
+        },
+        "language_options": {
+            "Français": "Francés",
+            "Anglais": "Inglés",
+            "Espagnol": "Español"
+        }
+    },
+    "rules": {
+        "content": "Lanza ladrillos desde los bordes hacia el centro.\nAlinea 3 ladrillos del mismo color para eliminarlos.\nLimpia todo el centro para pasar al siguiente nivel."
+    }
+}

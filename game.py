@@ -6,6 +6,7 @@ from score_screen import ScoreScreen
 from score_manager import ScoreManager
 from settings_screen import SettingsScreen
 from save_manager import SaveManager
+from i18n.i18n import create_translator
 
 class GameManager:
     def __init__(self):
@@ -15,13 +16,14 @@ class GameManager:
         self.clock = pygame.time.Clock()
         self.running = True
         
-        self.current_state = STATE_MENU
-        self.menu = Menu(self)
-        self.board = Board(self)
-        self.score_screen = ScoreScreen(self)
-        self.settings_screen = SettingsScreen(self)
         self.score_manager = ScoreManager()
         self.save_manager = SaveManager()
+        self.current_state = STATE_MENU
+        self.board = Board(self)
+        
+        # Initialisation i18n et écrans
+        self.update_language()
+        
         self.level = 0
         self.score = 0
         self.current_session_id = None
@@ -117,6 +119,20 @@ class GameManager:
                 self.board.get_state_seed()
             )
 
+    def update_language(self):
+        # On charge les paramètres pour avoir la langue actuelle
+        from settings_manager import SettingsManager
+        temp_settings = SettingsManager()
+        lang_map = {"Français": "fr", "Anglais": "en", "Espagnol": "es"}
+        current_lang = lang_map.get(temp_settings.get("language"), "fr")
+        self.t = create_translator("i18n/locales", current_lang)
+        
+        # Réinitialisation des écrans pour mettre à jour les textes
+        self.menu = Menu(self)
+        self.score_screen = ScoreScreen(self)
+        self.settings_screen = SettingsScreen(self)
+        # Note: on ne réinitialise pas le board car il contient l'état du jeu en cours
+
     def update(self, dt):
         if self.current_state == STATE_MENU:
             self.menu.update()
@@ -143,17 +159,17 @@ class GameManager:
             self.screen.fill(COLOR_BG)
             self.board.draw(self.screen)
             
-            level_text = self.font_game.render(f"Niveau: {self.level + 1}", True, COLOR_TEXT)
-            score_text = self.font_game.render(f"Score: {self.score}", True, COLOR_ACCENT)
+            level_text = self.font_game.render(f"{self.t('ui.level')}: {self.level + 1}", True, COLOR_TEXT)
+            score_text = self.font_game.render(f"{self.t('ui.score')}: {self.score}", True, COLOR_ACCENT)
             
             self.screen.blit(level_text, (20, 20))
             self.screen.blit(score_text, (20, 55))
             
-            hint_text = self.font_game.render("N: Suivant | P: Précédent | Echap: Menu", True, (100, 100, 100))
+            hint_text = self.font_game.render(self.t("ui.hints"), True, (100, 100, 100))
             self.screen.blit(hint_text, (SCREEN_WIDTH // 2 - hint_text.get_width() // 2, SCREEN_HEIGHT - 40))
             
             if self.settings_screen.settings_manager.get("show_fps"):
-                fps_text = self.font_game.render(f"FPS: {int(self.clock.get_fps())}", True, (0, 255, 0))
+                fps_text = self.font_game.render(self.t("ui.fps", fps=int(self.clock.get_fps())), True, (0, 255, 0))
                 self.screen.blit(fps_text, (SCREEN_WIDTH - 100, 20))
         
         pygame.display.flip()
