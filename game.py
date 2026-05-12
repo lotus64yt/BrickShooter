@@ -9,21 +9,24 @@ from save_manager import SaveManager
 from i18n.i18n import create_translator
 
 class GameManager:
-
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Brick Shooter")
         self.clock = pygame.time.Clock()
         self.running = True
+        
         self.score_manager = ScoreManager()
         self.save_manager = SaveManager()
         self.current_state = STATE_MENU
         self.board = Board(self)
+        
         self.update_language()
+        
         self.level = 0
         self.score = 0
         self.current_session_id = None
+        
         self.font_menu = pygame.font.SysFont('Arial', 48, bold=True)
         self.font_game = pygame.font.SysFont('Arial', 24, bold=True)
 
@@ -38,9 +41,11 @@ class GameManager:
                     state_seed=self.board.get_state_seed(),
                     session_id=self.current_session_id
                 )
+            
             self.score = 0
             self.level = 0
             self.current_session_id = None
+
         self.current_state = new_state
         if new_state == STATE_GAME:
             if not self.current_session_id:
@@ -59,12 +64,14 @@ class GameManager:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            
             if self.current_state == STATE_MENU:
                 self.menu.handle_events(event)
             elif self.current_state == STATE_GAME:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.board.handle_click(event.pos)
+                
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.change_state(STATE_MENU)
@@ -87,10 +94,12 @@ class GameManager:
         self.level = entry.get('level', 0)
         level_seed = entry.get('level_seed')
         state_seed = entry.get('state_seed')
+        
         self.current_state = STATE_GAME
         self.board.generate_level(self.level, seed=level_seed)
         if state_seed:
             self.board.load_from_state_seed(state_seed)
+        
         self.current_session_id = entry.get('session_id') or self.save_manager.create_new_save(
             self.level, self.score, level_seed, state_seed
         )
@@ -111,6 +120,7 @@ class GameManager:
         lang_map = {"Français": "fr", "Anglais": "en", "Espagnol": "es"}
         current_lang = lang_map.get(temp_settings.get("language"), "fr")
         self.t = create_translator("i18n/locales", current_lang)
+        
         self.menu = Menu(self)
         self.score_screen = ScoreScreen(self)
         self.settings_screen = SettingsScreen(self)
@@ -140,15 +150,20 @@ class GameManager:
         elif self.current_state == STATE_GAME:
             self.screen.fill(COLOR_BG)
             self.board.draw(self.screen)
+            
             level_text = self.font_game.render(f"{self.t('ui.level')}: {self.level + 1}", True, COLOR_TEXT)
             score_text = self.font_game.render(f"{self.t('ui.score')}: {self.score}", True, COLOR_ACCENT)
+            
             self.screen.blit(level_text, (20, 20))
             self.screen.blit(score_text, (20, 55))
+            
             hint_text = self.font_game.render(self.t("ui.hints"), True, (100, 100, 100))
             self.screen.blit(hint_text, (SCREEN_WIDTH // 2 - hint_text.get_width() // 2, SCREEN_HEIGHT - 40))
+            
             if self.settings_screen.settings_manager.get("show_fps"):
                 fps_text = self.font_game.render(self.t("ui.fps", fps=int(self.clock.get_fps())), True, (0, 255, 0))
                 self.screen.blit(fps_text, (SCREEN_WIDTH - 100, 20))
+        
         pygame.display.flip()
 
     def run(self):
