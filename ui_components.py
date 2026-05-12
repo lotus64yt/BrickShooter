@@ -52,6 +52,37 @@ class Carousel:
         if self.items:
             self.current_index = (self.current_index - 1) % len(self.items)
             
+class CarouselControls:
+    def __init__(self, carousel, font):
+        self.carousel = carousel
+        self.font = font
+        self.button_size = 40
+        self.left_button_rect = pygame.Rect(carousel.rect.x - self.button_size - 10, carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
+        self.right_button_rect = pygame.Rect(carousel.rect.right + 10, carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
+
+    def draw(self, surface):
+        pygame.draw.polygon(surface, COLOR_ACCENT, [
+            (self.left_button_rect.centerx + 10, self.left_button_rect.centery - 10),
+            (self.left_button_rect.centerx + 10, self.left_button_rect.centery + 10),
+            (self.left_button_rect.centerx - 10, self.left_button_rect.centery)
+        ])
+        
+        pygame.draw.polygon(surface, COLOR_ACCENT, [
+            (self.right_button_rect.centerx - 10, self.right_button_rect.centery - 10),
+            (self.right_button_rect.centerx - 10, self.right_button_rect.centery + 10),
+            (self.right_button_rect.centerx + 10, self.right_button_rect.centery)
+        ])
+        
+        self.carousel.draw(surface)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mouse_pos = event.pos
+            if self.left_button_rect.collidepoint(mouse_pos):
+                self.carousel.previous_item()
+            elif self.right_button_rect.collidepoint(mouse_pos):
+                self.carousel.next_item()
+            
 class MenuList:
     def __init__(self, x, y, width, height, items, font):
         self.rect = pygame.Rect(x, y, width, height)
@@ -80,4 +111,6 @@ class MenuList:
             self.hover_item(pygame.mouse.get_pos())
     
     def get_selected_item(self):
-        return self.items[self.selected_index] if self.items else None
+        if self.selected_index >= 0 and self.selected_index < len(self.items):
+            return self.items[self.selected_index]
+        return None

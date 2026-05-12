@@ -1,6 +1,6 @@
 import pygame
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BG, COLOR_TEXT, STATE_GAME
-from ui_components import Button, Carousel, MenuList
+from ui_components import Button, Carousel, CarouselControls, MenuList
 from load_images import loadImages
 
 class Menu:
@@ -25,6 +25,7 @@ class Menu:
             loadImages("assets/images/menu/carousel"), 
             self.font_button
         )
+        self.carousel_controls = CarouselControls(self.carousel_level, self.font_button)
         
         self.menu_list = MenuList(
             50, SCREEN_HEIGHT // 4, 200, 300,
@@ -38,6 +39,7 @@ class Menu:
     def handle_events(self, event):
         self.play_button.handle_event(event)
         self.menu_list.handle_event(event)
+        self.carousel_controls.handle_event(event)
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             item_selected = self.menu_list.get_selected_item()
@@ -62,6 +64,6 @@ class Menu:
         
         self.play_button.draw(surface)
         
-        self.carousel_level.draw(surface)
+        self.carousel_controls.draw(surface)
         
         self.menu_list.draw(surface)
