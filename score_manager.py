@@ -11,12 +11,29 @@ class ScoreManager:
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    def save_score(self, score, level):
+    def save_score(self, score, level, level_seed=None, state_seed=None, session_id=None):
         scores = self.load_scores()
-        scores.append({
-            "score": score,
-            "level": level
-        })
+        
+        updated = False
+        if session_id:
+            for s in scores:
+                if s.get('session_id') == session_id:
+                    # On met à jour si le nouveau score est meilleur ou égal
+                    s['score'] = max(score, s.get('score', 0))
+                    s['level'] = max(level, s.get('level', 0))
+                    s['level_seed'] = level_seed
+                    s['state_seed'] = state_seed
+                    updated = True
+                    break
+        
+        if not updated:
+            scores.append({
+                "score": score,
+                "level": level,
+                "level_seed": level_seed,
+                "state_seed": state_seed,
+                "session_id": session_id
+            })
         
         try:
             with open(self.filename, 'w') as f:

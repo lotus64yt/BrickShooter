@@ -5,6 +5,7 @@ from board import Board
 from score_screen import ScoreScreen
 from score_manager import ScoreManager
 from settings_screen import SettingsScreen
+from save_manager import SaveManager
 
 class GameManager:
     def __init__(self):
@@ -20,8 +21,10 @@ class GameManager:
         self.score_screen = ScoreScreen(self)
         self.settings_screen = SettingsScreen(self)
         self.score_manager = ScoreManager()
+        self.save_manager = SaveManager()
         self.level = 0
         self.score = 0
+        self.current_session_id = None
         
         self.font_menu = pygame.font.SysFont('Arial', 48, bold=True)
         self.font_game = pygame.font.SysFont('Arial', 24, bold=True)
@@ -29,13 +32,32 @@ class GameManager:
     def change_state(self, new_state):
         if self.current_state == STATE_GAME and new_state == STATE_MENU:
             if self.score > 0:
-                self.score_manager.save_score(self.score, self.level)
-                self.score = 0
-                self.level = 0
+                print(f"Sauvegarde du score: {self.score} pour la session {self.current_session_id}")
+                self.score_manager.save_score(
+                    self.score, 
+                    self.level, 
+                    level_seed=self.board.level_seed,
+                    state_seed=self.board.get_state_seed(),
+                    session_id=self.current_session_id
+                )
+            # Ne pas réinitialiser ici si on veut garder la session active ? 
+            # Non, l'utilisateur a dit "quand je joue ca doit enregistrer", et l'auto-save le fait déjà.
+            # Le scores.json est le classement final/intermédiaire.
+            self.score = 0
+            self.level = 0
+            self.current_session_id = None
 
         self.current_state = new_state
         if new_state == STATE_GAME:
-            self.board.generate_level(self.level)
+            if not self.current_session_id:
+                # Nouvelle partie
+                self.board.generate_level(self.level)
+                self.current_session_id = self.save_manager.create_new_save(
+                    self.level, self.score, self.board.level_seed, self.board.get_state_seed()
+                )
+            else:
+                # Reprise de partie déjà gérée par resume_game ou déjà en cours
+                pass
         elif new_state == STATE_SCORES:
             self.score_screen.load_scores()
         elif new_state == STATE_SETTINGS:
@@ -70,6 +92,31 @@ class GameManager:
     def add_score(self, pts):
         self.score += pts
 
+    def resume_game(self, entry):
+        self.score = entry.get('score', 0)
+        self.level = entry.get('level', 0)
+        level_seed = entry.get('level_seed')
+        state_seed = entry.get('state_seed')
+        
+        self.current_state = STATE_GAME
+        self.board.generate_level(self.level, seed=level_seed)
+        if state_seed:
+            self.board.load_from_state_seed(state_seed)
+        
+        self.current_session_id = entry.get('session_id') or self.save_manager.create_new_save(
+            self.level, self.score, level_seed, state_seed
+        )
+
+    def auto_save(self):
+        if self.current_session_id and self.current_state == STATE_GAME:
+            self.save_manager.update_save(
+                self.current_session_id,
+                self.level,
+                self.score,
+                self.board.level_seed,
+                self.board.get_state_seed()
+            )
+
     def update(self, dt):
         if self.current_state == STATE_MENU:
             self.menu.update()
@@ -79,6 +126,7 @@ class GameManager:
                 if self.board.is_cleared():
                     self.level += 1
                     self.board.generate_level(self.level)
+                    self.auto_save()
         elif self.current_state == STATE_SCORES:
             self.score_screen.update()
         elif self.current_state == STATE_SETTINGS:

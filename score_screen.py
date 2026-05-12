@@ -22,7 +22,37 @@ class ScoreScreen:
         )
         
     def load_scores(self):
-        self.scores = self.score_manager.load_scores()
+        finished_scores = self.score_manager.load_scores()
+        active_saves = self.game_manager.save_manager.list_saves()
+        
+        self.scores = []
+        seen_sessions = set()
+        
+        # Ajouter d'abord les sauvegardes actives
+        for save in active_saves:
+            session_id = save.get('session_id')
+            if session_id:
+                seen_sessions.add(session_id)
+                self.scores.append({
+                    "score": save.get('score', 0),
+                    "level": save.get('level', 0),
+                    "level_seed": save.get('level_seed'),
+                    "state_seed": save.get('state_seed'),
+                    "session_id": session_id,
+                    "status": "En cours"
+                })
+        
+        # Ajouter les scores terminés s'ils ne sont pas déjà présents comme sauvegarde active
+        for score in finished_scores:
+            if score.get('session_id') not in seen_sessions:
+                score['status'] = "Score"
+                self.scores.append(score)
+            else:
+                # Si déjà présent, on peut mettre à jour le statut du score existant
+                for s in self.scores:
+                    if s.get('session_id') == score.get('session_id'):
+                        s['is_high_score'] = True
+
         self.scores.sort(key=lambda x: x.get('score', 0), reverse=True)
         self.total_height = len(self.scores) * self.line_height
         self.scroll_y = 0
@@ -34,6 +64,20 @@ class ScoreScreen:
             if event.key == pygame.K_ESCAPE:
                 self.game_manager.change_state(STATE_MENU)
         
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mouse_pos = event.pos
+            content_rect = pygame.Rect(50, 160, SCREEN_WIDTH - 100, self.visible_height)
+            if content_rect.collidepoint(mouse_pos):
+                for i, entry in enumerate(self.scores):
+                    y_pos = i * self.line_height + self.scroll_y
+                    # Le bouton est à SCREEN_WIDTH - 230 par rapport à content_rect.x
+                    abs_x = 50 + (SCREEN_WIDTH - 230)
+                    abs_y = 160 + y_pos
+                    resume_rect = pygame.Rect(abs_x, abs_y, 100, 30)
+                    if resume_rect.collidepoint(mouse_pos):
+                        self.game_manager.resume_game(entry)
+                        break
+
         if event.type == pygame.MOUSEWHEEL:
             self.scroll_y += event.y * 20
             self.limit_scroll()
@@ -66,10 +110,12 @@ class ScoreScreen:
         rank_h = self.font_item.render("Rang", True, COLOR_TEXT)
         score_h = self.font_item.render("Score", True, COLOR_TEXT)
         level_h = self.font_item.render("Niveau", True, COLOR_TEXT)
+        status_h = self.font_item.render("Statut", True, COLOR_TEXT)
         
-        surface.blit(rank_h, (100, header_y))
-        surface.blit(score_h, (SCREEN_WIDTH // 2 - 30, header_y))
-        surface.blit(level_h, (SCREEN_WIDTH - 200, header_y))
+        surface.blit(rank_h, (80, header_y))
+        surface.blit(score_h, (200, header_y))
+        surface.blit(level_h, (350, header_y))
+        surface.blit(status_h, (500, header_y))
         
         content_rect = pygame.Rect(50, 160, SCREEN_WIDTH - 100, self.visible_height)
         
@@ -91,13 +137,30 @@ class ScoreScreen:
                 rank_text = self.font_item.render(f"#{i+1}", True, color)
                 score_val = entry.get('score', 0)
                 level_val = entry.get('level', 0) + 1
+                status_val = entry.get('status', 'Score')
                 
                 score_text = self.font_item.render(f"{score_val:,}", True, COLOR_TEXT)
                 level_text = self.font_item.render(f"Niv. {level_val}", True, COLOR_TEXT)
+                status_text = self.font_item.render(status_val, True, (0, 255, 0) if status_val == "En cours" else (150, 150, 150))
                 
-                scroll_surface.blit(rank_text, (50, y_pos))
-                scroll_surface.blit(score_text, (SCREEN_WIDTH // 2 - 80, y_pos))
-                scroll_surface.blit(level_text, (SCREEN_WIDTH - 250, y_pos))
+                scroll_surface.blit(rank_text, (30, y_pos))
+                scroll_surface.blit(score_text, (150, y_pos))
+                scroll_surface.blit(level_text, (300, y_pos))
+                scroll_surface.blit(status_text, (450, y_pos))
+                
+                # Bouton Reprendre
+                resume_rect = pygame.Rect(SCREEN_WIDTH - 230, y_pos, 100, 30)
+                mouse_pos = pygame.mouse.get_pos()
+                # Ajuster mouse_pos pour la surface de défilement
+                adj_mouse_pos = (mouse_pos[0] - 50, mouse_pos[1] - 160)
+                
+                is_resume_hovered = resume_rect.collidepoint(adj_mouse_pos)
+                btn_color = COLOR_ACCENT if is_resume_hovered else (60, 60, 60)
+                
+                pygame.draw.rect(scroll_surface, btn_color, resume_rect, 0, 5)
+                res_text = self.font_item.render("Reprendre", True, COLOR_TEXT)
+                res_rect = res_text.get_rect(center=resume_rect.center)
+                scroll_surface.blit(res_text, res_rect)
                 
             surface.blit(scroll_surface, (content_rect.x, content_rect.y))
         except Exception as e:

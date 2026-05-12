@@ -11,11 +11,20 @@ class Board:
         self.game_manager = game_manager
         self.grid = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
         self.level = 0
+        self.level_seed = None
+        self.rng = random.Random()
         self.animations = []
         self.pending_logic = False
+        self.needs_save = False
 
-    def generate_level(self, level_idx):
+    def generate_level(self, level_idx, seed=None):
         self.level = level_idx
+        if seed is None:
+            self.level_seed = random.randint(0, 999999)
+        else:
+            self.level_seed = seed
+            
+        self.rng.seed(self.level_seed)
         self.grid = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
         
         if level_idx < len(LEVEL_DATA):
@@ -36,9 +45,9 @@ class Board:
             fill_density = 0.3 + min(0.4, (level_idx - len(LEVEL_DATA)) * 0.05)
             for y in range(INNER_START + 1, INNER_END - 1):
                 for x in range(INNER_START + 1, INNER_END - 1):
-                    if random.random() < fill_density:
+                    if self.rng.random() < fill_density:
                         choices = available_colors[:]
-                        random.shuffle(choices)
+                        self.rng.shuffle(choices)
                         for color in choices:
                             h_count = 0
                             if x > INNER_START + 1 and self.grid[y][x-1] and self.grid[y][x-1]['color'] == color:
@@ -81,7 +90,7 @@ class Board:
                         elif x >= INNER_END: direction = "left"
                         
                         self.grid[y][x] = {
-                            'color': random.choice(available_colors),
+                            'color': self.rng.choice(available_colors),
                             'dir': direction
                         }
 
@@ -134,6 +143,7 @@ class Board:
             if head and self.is_line_firable(grid_x, grid_y, direction):
                 self.fire_block(head[0], head[1], direction)
                 self.pending_logic = True
+                self.needs_save = True
 
     def fire_block(self, x, y, direction):
         block = self.grid[y][x]
@@ -319,6 +329,9 @@ class Board:
             if self.pending_logic:
                 if not self.update_logic_step():
                     self.pending_logic = False
+                    if self.needs_save:
+                        self.game_manager.auto_save()
+                        self.needs_save = False
             return
 
         all_finished = True
@@ -385,19 +398,19 @@ class Board:
         if direction == "down":
             for hy in range(y, 0, -1):
                 self.grid[hy][x] = self.grid[hy-1][x]
-            self.grid[0][x] = {'color': random.choice(available_colors), 'dir': 'down'}
+            self.grid[0][x] = {'color': self.rng.choice(available_colors), 'dir': 'down'}
         elif direction == "up":
             for hy in range(y, GRID_SIZE - 1):
                 self.grid[hy][x] = self.grid[hy+1][x]
-            self.grid[GRID_SIZE-1][x] = {'color': random.choice(available_colors), 'dir': 'up'}
+            self.grid[GRID_SIZE-1][x] = {'color': self.rng.choice(available_colors), 'dir': 'up'}
         elif direction == "right":
             for hx in range(x, 0, -1):
                 self.grid[y][hx] = self.grid[y][hx-1]
-            self.grid[y][0] = {'color': random.choice(available_colors), 'dir': 'right'}
+            self.grid[y][0] = {'color': self.rng.choice(available_colors), 'dir': 'right'}
         elif direction == "left":
             for hx in range(x, GRID_SIZE - 1):
                 self.grid[y][hx] = self.grid[y][hx+1]
-            self.grid[y][GRID_SIZE-1] = {'color': random.choice(available_colors), 'dir': 'left'}
+            self.grid[y][GRID_SIZE-1] = {'color': self.rng.choice(available_colors), 'dir': 'left'}
 
     def draw(self, surface):
         mouse_pos = pygame.mouse.get_pos()
@@ -500,4 +513,52 @@ class Board:
             for x in range(INNER_START, INNER_END):
                 if self.grid[y][x]:
                     return False
+        return True
+
+    def get_state_seed(self):
+        # Encodage de la grille en une chaîne de caractères (graine d'état)
+        chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+        dirs = {None: 0, "up": 1, "down": 2, "left": 3, "right": 4}
+        seed_parts = []
+        
+        for y in range(GRID_SIZE):
+            for x in range(GRID_SIZE):
+                cell = self.grid[y][x]
+                if not cell:
+                    seed_parts.append(chars[0])
+                else:
+                    try:
+                        color_idx = BLOCK_COLORS.index(cell['color'])
+                        dir_idx = dirs.get(cell['dir'], 0)
+                        val = (color_idx + 1) + (dir_idx * 10)
+                        seed_parts.append(chars[val])
+                    except ValueError:
+                        seed_parts.append(chars[0])
+        
+        return "".join(seed_parts)
+
+    def load_from_state_seed(self, state_seed):
+        chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+        dirs = {0: None, 1: "up", 2: "down", 3: "left", 4: "right"}
+        
+        if len(state_seed) != GRID_SIZE * GRID_SIZE:
+            return False
+            
+        new_grid = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+        for i, char in enumerate(state_seed):
+            y = i // GRID_SIZE
+            x = i % GRID_SIZE
+            val = chars.find(char)
+            if val <= 0:
+                new_grid[y][x] = None
+            else:
+                dir_idx = val // 10
+                color_idx = (val % 10) - 1
+                if 0 <= color_idx < len(BLOCK_COLORS):
+                    new_grid[y][x] = {
+                        'color': BLOCK_COLORS[color_idx],
+                        'dir': dirs.get(dir_idx)
+                    }
+        
+        self.grid = new_grid
         return True
