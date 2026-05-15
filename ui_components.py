@@ -30,10 +30,25 @@ class Button:
 class Carousel:
 
     def __init__(self, x, y, width, height, items, font):
+        self._x = x
+        self._y = y
         self.rect = pygame.Rect(x, y, width, height)
         self.items = items
         self.font = font
         self.current_index = 0
+
+    @property
+    def x(self): return self._x
+    @x.setter
+    def x(self, val):
+        self._x = val
+        self.rect.x = val - self.rect.width // 2
+    @property
+    def y(self): return self._y
+    @y.setter
+    def y(self, val):
+        self._y = val
+        self.rect.y = val - self.rect.height // 2
 
     def draw(self, surface):
         if not self.items:
@@ -57,8 +72,11 @@ class CarouselControls:
         self.carousel = carousel
         self.font = font
         self.button_size = 40
-        self.left_button_rect = pygame.Rect(carousel.rect.x - self.button_size - 10, carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
-        self.right_button_rect = pygame.Rect(carousel.rect.right + 10, carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
+        self.update_pos()
+
+    def update_pos(self):
+        self.left_button_rect = pygame.Rect(self.carousel.rect.x - self.button_size - 20, self.carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
+        self.right_button_rect = pygame.Rect(self.carousel.rect.right + 20, self.carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
 
     def draw(self, surface):
         pygame.draw.polygon(surface, COLOR_ACCENT, [
@@ -88,6 +106,15 @@ class MenuList:
         self.items = items
         self.font = font
         self.selected_index = 0
+
+    @property
+    def x(self): return self.rect.x
+    @x.setter
+    def x(self, val): self.rect.x = val
+    @property
+    def y(self): return self.rect.y
+    @y.setter
+    def y(self, val): self.rect.y = val
 
     def draw(self, surface):
         for index, item in enumerate(self.items):

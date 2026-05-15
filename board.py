@@ -127,6 +127,7 @@ class Board:
             grid_y = rel_y // CELL_SIZE
             head, direction = self.get_firing_head(grid_x, grid_y)
             if head and self.is_line_firable(grid_x, grid_y, direction):
+                self.game_manager.audio_manager.play_sfx("move")
                 self.fire_block(head[0], head[1], direction)
                 self.pending_logic = True
                 self.needs_save = True
@@ -261,6 +262,7 @@ class Board:
     def update_logic_step(self):
         matches = self.find_matches()
         if matches:
+            self.game_manager.audio_manager.play_sfx("clear")
             num_blocks = len(matches)
             score = 30 * (2 ** (num_blocks - 3))
             self.game_manager.add_score(score)
@@ -383,11 +385,16 @@ class Board:
             self.grid[y][GRID_SIZE-1] = {'color': self.rng.choice(available_colors), 'dir': 'left'}
 
     def draw(self, surface):
+        sw, sh = surface.get_size()
+        board_size = GRID_SIZE * CELL_SIZE
+        offset_x = (sw - board_size) // 2
+        offset_y = (sh - board_size) // 2
+        
         mouse_pos = pygame.mouse.get_pos()
-        rel_x = mouse_pos[0] - BOARD_OFFSET_X
-        rel_y = mouse_pos[1] - BOARD_OFFSET_Y
+        rel_x = mouse_pos[0] - offset_x
+        rel_y = mouse_pos[1] - offset_y
         grid_x, grid_y = -1, -1
-        if 0 <= rel_x < GRID_SIZE * CELL_SIZE and 0 <= rel_y < GRID_SIZE * CELL_SIZE:
+        if 0 <= rel_x < board_size and 0 <= rel_y < board_size:
             grid_x = rel_x // CELL_SIZE
             grid_y = rel_y // CELL_SIZE
         hovered_head, direction = self.get_firing_head(grid_x, grid_y)
@@ -395,8 +402,8 @@ class Board:
         if hovered_head:
             firable = self.is_line_firable(grid_x, grid_y, direction)
         center_rect = pygame.Rect(
-            BOARD_OFFSET_X + INNER_START * CELL_SIZE,
-            BOARD_OFFSET_Y + INNER_START * CELL_SIZE,
+            offset_x + INNER_START * CELL_SIZE,
+            offset_y + INNER_START * CELL_SIZE,
             (INNER_END - INNER_START) * CELL_SIZE,
             (INNER_END - INNER_START) * CELL_SIZE
         )
@@ -406,13 +413,13 @@ class Board:
             for x in range(GRID_SIZE):
                 cell = self.grid[y][x]
                 if cell:
-                    self._draw_block_at(surface, cell, BOARD_OFFSET_X + x * CELL_SIZE, BOARD_OFFSET_Y + y * CELL_SIZE)
+                    self._draw_block_at(surface, cell, offset_x + x * CELL_SIZE, offset_y + y * CELL_SIZE)
                     is_on_grid = (INNER_START <= x < INNER_END) and (INNER_START <= y < INNER_END)
                     if is_on_grid and cell['dir']:
-                        block_rect = pygame.Rect(BOARD_OFFSET_X + x * CELL_SIZE, BOARD_OFFSET_Y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE).inflate(-6, -6)
+                        block_rect = pygame.Rect(offset_x + x * CELL_SIZE, offset_y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE).inflate(-6, -6)
                         self._draw_arrow(surface, block_rect, cell['dir'], color=(255, 255, 255), alpha=180)
                     if hovered_head == (x, y):
-                        block_rect = pygame.Rect(BOARD_OFFSET_X + x * CELL_SIZE, BOARD_OFFSET_Y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE).inflate(-6, -6)
+                        block_rect = pygame.Rect(offset_x + x * CELL_SIZE, offset_y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE).inflate(-6, -6)
                         if firable:
                             self._draw_arrow(surface, block_rect, direction)
                         else:
@@ -421,17 +428,17 @@ class Board:
             if anim['type'] == 'move':
                 for i, h_pos in enumerate(anim['history']):
                     alpha = int(255 * (i / len(anim['history'])) * 0.3)
-                    self._draw_block_at(surface, anim['block'], BOARD_OFFSET_X + h_pos.x, BOARD_OFFSET_Y + h_pos.y, alpha=alpha)
-                self._draw_block_at(surface, anim['block'], BOARD_OFFSET_X + anim['pos'].x, BOARD_OFFSET_Y + anim['pos'].y)
+                    self._draw_block_at(surface, anim['block'], offset_x + h_pos.x, offset_y + h_pos.y, alpha=alpha)
+                self._draw_block_at(surface, anim['block'], offset_x + anim['pos'].x, offset_y + anim['pos'].y)
             elif anim['type'] == 'fade':
                 alpha = int(255 * (1.0 - anim['progress']))
-                self._draw_block_at(surface, anim['block'], BOARD_OFFSET_X + anim['pos'].x, BOARD_OFFSET_Y + anim['pos'].y, alpha=alpha)
+                self._draw_block_at(surface, anim['block'], offset_x + anim['pos'].x, offset_y + anim['pos'].y, alpha=alpha)
             elif anim['type'] == 'score_text':
                 alpha = int(255 * (1.0 - anim['progress']))
                 text_surf = self.game_manager.font_game.render(anim['text'], True, (255, 255, 255))
                 text_surf.set_alpha(alpha)
-                surface.blit(text_surf, (BOARD_OFFSET_X + anim['pos'].x + CELL_SIZE//2 - text_surf.get_width()//2, 
-                                        BOARD_OFFSET_Y + anim['pos'].y))
+                surface.blit(text_surf, (offset_x + anim['pos'].x + CELL_SIZE//2 - text_surf.get_width()//2, 
+                                        offset_y + anim['pos'].y))
 
     def _draw_block_at(self, surface, cell, x, y, alpha=255):
         color = cell['color']

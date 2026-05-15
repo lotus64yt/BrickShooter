@@ -2,9 +2,9 @@
     "menu": {
         "title": "BRICK SHOOTER",
         "play": "Jouer",
-        "rules": "Règles",
+        "rules": "R\u00e8gles",
         "scores": "Scores",
-        "settings": "Paramètres"
+        "settings": "Param\u00e8tres"
     },
     "ui": {
         "back": "Retour",
@@ -16,27 +16,21 @@
         "ongoing": "En cours",
         "finished": "Score",
         "fps": "FPS: {fps}",
-        "hints": "N: Suivant | P: Précédent | Echap: Menu"
+        "hints": "N: Suivant | P: Pr\u00e9c\u00e9dent | Echap: Menu"
     },
     "settings": {
         "volume_music": "Volume Musique",
         "volume_sfx": "Volume Bruitages",
-        "fullscreen": "Plein Écran",
-        "difficulty": "Difficulté",
+        "fullscreen": "Plein \u00c9cran",
         "language": "Langue",
         "show_fps": "Afficher FPS",
-        "difficulty_options": {
-            "Facile": "Facile",
-            "Normal": "Normal",
-            "Difficile": "Difficile"
-        },
         "language_options": {
-            "Français": "Français",
+            "Fran\u00e7ais": "Fran\u00e7ais",
             "Anglais": "Anglais",
             "Espagnol": "Espagnol"
         }
     },
     "rules": {
-        "content": "Lancez des briques depuis les bords vers le centre.\nAlignez 3 briques de même couleur pour les faire disparaître.\nNettoyez tout le centre pour passer au niveau suivant."
+        "content": "Lancez des briques depuis les bords vers le centre.\nAlignez 3 briques de m\u00eame couleur pour les faire dispara\u00eetre.\nNettoyez tout le centre pour passer au niveau suivant."
     }
 }

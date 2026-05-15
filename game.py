@@ -7,14 +7,26 @@ from score_manager import ScoreManager
 from settings_screen import SettingsScreen
 from save_manager import SaveManager
 from i18n.i18n import create_translator
+from audio_manager import AudioManager
+from settings_manager import SettingsManager
 
 class GameManager:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.settings_manager = SettingsManager()
+        
+        # Modern Pygame 2.0+ display setup: SCALED handles fullscreen perfectly
+        flags = pygame.SCALED
+        if self.settings_manager.get("fullscreen"):
+            flags |= pygame.FULLSCREEN
+        
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
         pygame.display.set_caption("Brick Shooter")
         self.clock = pygame.time.Clock()
         self.running = True
+        
+        self.audio_manager = AudioManager(self.settings_manager)
+        self.audio_manager.start_music()
         
         self.score_manager = ScoreManager()
         self.save_manager = SaveManager()
@@ -104,6 +116,10 @@ class GameManager:
             self.level, self.score, level_seed, state_seed
         )
 
+    def toggle_fullscreen(self, is_fullscreen):
+        # toggle_fullscreen() is the most reliable way with the SCALED flag
+        pygame.display.toggle_fullscreen()
+
     def auto_save(self):
         if self.current_session_id and self.current_state == STATE_GAME:
             self.save_manager.update_save(
@@ -115,10 +131,8 @@ class GameManager:
             )
 
     def update_language(self):
-        from settings_manager import SettingsManager
-        temp_settings = SettingsManager()
         lang_map = {"Français": "fr", "Anglais": "en", "Espagnol": "es"}
-        current_lang = lang_map.get(temp_settings.get("language"), "fr")
+        current_lang = lang_map.get(self.settings_manager.get("language"), "fr")
         self.t = create_translator("i18n/locales", current_lang)
         
         self.menu = Menu(self)
@@ -132,6 +146,7 @@ class GameManager:
             self.board.update(dt)
             if not self.board.animations and not self.board.pending_logic:
                 if self.board.is_cleared():
+                    self.audio_manager.play_sfx("win")
                     self.level += 1
                     self.board.generate_level(self.level)
                     self.auto_save()
@@ -160,9 +175,9 @@ class GameManager:
             hint_text = self.font_game.render(self.t("ui.hints"), True, (100, 100, 100))
             self.screen.blit(hint_text, (SCREEN_WIDTH // 2 - hint_text.get_width() // 2, SCREEN_HEIGHT - 40))
             
-            if self.settings_screen.settings_manager.get("show_fps"):
+            if self.settings_manager.get("show_fps"):
                 fps_text = self.font_game.render(self.t("ui.fps", fps=int(self.clock.get_fps())), True, (0, 255, 0))
-                self.screen.blit(fps_text, (SCREEN_WIDTH - 100, 20))
+                self.screen.blit(fps_text, (self.screen.get_width() - 100, 20))
         
         pygame.display.flip()
 

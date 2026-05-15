@@ -13,7 +13,7 @@ class ScoreScreen:
         self.scroll_y = 0
         self.scores = []
         self.line_height = 40
-        self.visible_height = SCREEN_HEIGHT - 250
+        self.visible_height = 0 # Will be updated in draw
         self.total_height = 0
         self.back_button = Button(
             20, 20, 120, 40, 
@@ -51,17 +51,18 @@ class ScoreScreen:
         self.scroll_y = 0
 
     def handle_events(self, event):
+        sw, sh = self.game_manager.screen.get_size()
         self.back_button.handle_event(event)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game_manager.change_state(STATE_MENU)
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = event.pos
-            content_rect = pygame.Rect(50, 160, SCREEN_WIDTH - 100, self.visible_height)
+            content_rect = pygame.Rect(50, 160, sw - 100, sh - 250)
             if content_rect.collidepoint(mouse_pos):
                 for i, entry in enumerate(self.scores):
                     y_pos = i * self.line_height + self.scroll_y
-                    abs_x = 50 + (SCREEN_WIDTH - 230)
+                    abs_x = 50 + (sw - 230)
                     abs_y = 160 + y_pos
                     resume_rect = pygame.Rect(abs_x, abs_y, 100, 30)
                     if resume_rect.collidepoint(mouse_pos):
@@ -86,12 +87,14 @@ class ScoreScreen:
         self.back_button.update(mouse_pos)
 
     def draw(self, surface):
+        sw, sh = surface.get_size()
+        self.visible_height = sh - 250
         surface.fill(COLOR_BG)
         self.back_button.draw(surface)
         title_surf = self.font_title.render(self.game_manager.t("menu.scores").upper(), True, COLOR_ACCENT)
-        surface.blit(title_surf, (SCREEN_WIDTH // 2 - title_surf.get_width() // 2, 40))
+        surface.blit(title_surf, (sw // 2 - title_surf.get_width() // 2, 40))
         header_y = 120
-        pygame.draw.line(surface, COLOR_ACCENT, (50, header_y + 35), (SCREEN_WIDTH - 50, header_y + 35), 2)
+        pygame.draw.line(surface, COLOR_ACCENT, (50, header_y + 35), (sw - 50, header_y + 35), 2)
         rank_h = self.font_item.render(self.game_manager.t("ui.rank"), True, COLOR_TEXT)
         score_h = self.font_item.render(self.game_manager.t("ui.score"), True, COLOR_TEXT)
         level_h = self.font_item.render(self.game_manager.t("ui.level"), True, COLOR_TEXT)
@@ -100,7 +103,7 @@ class ScoreScreen:
         surface.blit(score_h, (200, header_y))
         surface.blit(level_h, (350, header_y))
         surface.blit(status_h, (500, header_y))
-        content_rect = pygame.Rect(50, 160, SCREEN_WIDTH - 100, self.visible_height)
+        content_rect = pygame.Rect(50, 160, sw - 100, self.visible_height)
         try:
             scroll_surface = pygame.Surface((content_rect.width, content_rect.height))
             scroll_surface.fill(COLOR_BG)
@@ -123,7 +126,7 @@ class ScoreScreen:
                 scroll_surface.blit(score_text, (150, y_pos))
                 scroll_surface.blit(level_text, (300, y_pos))
                 scroll_surface.blit(status_text, (450, y_pos))
-                resume_rect = pygame.Rect(SCREEN_WIDTH - 230, y_pos, 100, 30)
+                resume_rect = pygame.Rect(sw - 230, y_pos, 100, 30)
                 mouse_pos = pygame.mouse.get_pos()
                 adj_mouse_pos = (mouse_pos[0] - 50, mouse_pos[1] - 160)
                 is_resume_hovered = resume_rect.collidepoint(adj_mouse_pos)
@@ -136,7 +139,7 @@ class ScoreScreen:
         except Exception as e:
             print(f"Drawing error: {e}")
         if self.total_height > self.visible_height:
-            bar_x = SCREEN_WIDTH - 40
+            bar_x = sw - 40
             bar_y = content_rect.y
             bar_w = 8
             bar_h = self.visible_height
@@ -145,4 +148,4 @@ class ScoreScreen:
             handle_y = bar_y + (-self.scroll_y / (self.total_height - self.visible_height)) * (bar_h - handle_h) if self.total_height > self.visible_height else bar_y
             pygame.draw.rect(surface, COLOR_ACCENT, (bar_x, handle_y, bar_w, handle_h), 0, 4)
         footer_text = self.font_item.render(self.game_manager.t("ui.back") + " (Esc)", True, (100, 100, 100))
-        surface.blit(footer_text, (SCREEN_WIDTH // 2 - footer_text.get_width() // 2, SCREEN_HEIGHT - 60))
+        surface.blit(footer_text, (sw // 2 - footer_text.get_width() // 2, sh - 60))

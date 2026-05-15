@@ -10,30 +10,24 @@
         "back": "Volver",
         "resume": "Reanudar",
         "level": "Nivel",
-        "score": "Puntuación",
+        "score": "Puntuaci\u00f3n",
         "status": "Estado",
         "rank": "Rango",
         "ongoing": "En curso",
-        "finished": "Puntuación",
+        "finished": "Puntuaci\u00f3n",
         "fps": "FPS: {fps}",
-        "hints": "N: Siguiente | P: Anterior | Esc: Menú"
+        "hints": "N: Siguiente | P: Anterior | Esc: Men\u00fa"
     },
     "settings": {
-        "volume_music": "Volumen Música",
+        "volume_music": "Volumen M\u00fasica",
         "volume_sfx": "Volumen Efectos",
         "fullscreen": "Pantalla Completa",
-        "difficulty": "Dificultad",
         "language": "Idioma",
         "show_fps": "Mostrar FPS",
-        "difficulty_options": {
-            "Facile": "Fácil",
-            "Normal": "Normal",
-            "Difficile": "Difícil"
-        },
         "language_options": {
-            "Français": "Francés",
-            "Anglais": "Inglés",
-            "Espagnol": "Español"
+            "Fran\u00e7ais": "Franc\u00e9s",
+            "Anglais": "Ingl\u00e9s",
+            "Espagnol": "Espa\u00f1ol"
         }
     },
     "rules": {

@@ -9,7 +9,6 @@ class SettingsManager:
             "volume_music": {"val": 70, "type": "int", "range": (0, 100), "label": "Volume Musique"},
             "volume_sfx": {"val": 80, "type": "int", "range": (0, 100), "label": "Volume Bruitages"},
             "fullscreen": {"val": False, "type": "bool", "label": "Plein Écran"},
-            "difficulty": {"val": "Normal", "type": "choice", "options": ["Facile", "Normal", "Difficile"], "label": "Difficulté"},
             "language": {"val": "Français", "type": "choice", "options": ["Français", "Anglais", "Espagnol"], "label": "Langue"},
             "show_fps": {"val": True, "type": "bool", "label": "Afficher FPS"}
         }

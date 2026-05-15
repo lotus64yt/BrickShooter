@@ -7,13 +7,13 @@ class SettingsScreen:
 
     def __init__(self, game_manager):
         self.game_manager = game_manager
-        self.settings_manager = SettingsManager()
+        self.settings_manager = self.game_manager.settings_manager
         self.font_title = pygame.font.SysFont("Arial", 48, bold=True)
         self.font_label = pygame.font.SysFont("Arial", 28)
         self.font_val = pygame.font.SysFont("Arial", 24, bold=True)
         self.scroll_y = 0
         self.line_height = 80
-        self.visible_height = SCREEN_HEIGHT - 250
+        self.visible_height = 0 # Will be updated in draw
         self.back_button = Button(
             20, 20, 120, 40, 
             self.game_manager.t("ui.back"), pygame.font.SysFont("Arial", 20, bold=True),
@@ -51,11 +51,13 @@ class SettingsScreen:
         self.back_button.update(pygame.mouse.get_pos())
 
     def draw(self, surface):
+        sw, sh = surface.get_size()
+        self.visible_height = sh - 250
         surface.fill(COLOR_BG)
         self.back_button.draw(surface)
         title_surf = self.font_title.render(self.game_manager.t("menu.settings").upper(), True, COLOR_ACCENT)
-        surface.blit(title_surf, (SCREEN_WIDTH // 2 - title_surf.get_width() // 2, 40))
-        content_rect = pygame.Rect(50, 160, SCREEN_WIDTH - 100, self.visible_height)
+        surface.blit(title_surf, (sw // 2 - title_surf.get_width() // 2, 40))
+        content_rect = pygame.Rect(50, 160, sw - 100, self.visible_height)
         self.interactives = [] 
         scroll_surface = pygame.Surface((content_rect.width, content_rect.height))
         scroll_surface.fill(COLOR_BG)
@@ -68,7 +70,7 @@ class SettingsScreen:
         surface.blit(scroll_surface, content_rect.topleft)
         total_height = len(self.settings_manager.settings) * self.line_height
         if total_height > self.visible_height:
-            bar_x = SCREEN_WIDTH - 40
+            bar_x = sw - 40
             bar_y = content_rect.y
             bar_w = 8
             bar_h = self.visible_height
@@ -77,7 +79,7 @@ class SettingsScreen:
             handle_y = bar_y + (-self.scroll_y / (total_height - self.visible_height)) * (bar_h - handle_h)
             pygame.draw.rect(surface, COLOR_ACCENT, (bar_x, handle_y, bar_w, handle_h), 0, 4)
         footer_text = self.font_label.render(self.game_manager.t("ui.back") + " (Esc)", True, (100, 100, 100))
-        surface.blit(footer_text, (SCREEN_WIDTH // 2 - footer_text.get_width() // 2, SCREEN_HEIGHT - 60))
+        surface.blit(footer_text, (sw // 2 - footer_text.get_width() // 2, sh - 60))
 
     def draw_setting_row(self, surface, key, spec, rect, screen_offset):
         label_text = self.game_manager.t(f"settings.{key}")
@@ -92,7 +94,12 @@ class SettingsScreen:
             pygame.draw.rect(surface, color, toggle_rect, 0, 15)
             circle_x = toggle_rect.right - 15 if val else toggle_rect.left + 15
             pygame.draw.circle(surface, (255, 255, 255), (circle_x, toggle_rect.centery), 12)
-            self.interactives.append((toggle_rect.move(screen_offset), lambda: self.settings_manager.set(key, not val)))
+            def toggle_bool():
+                new_val = not val
+                self.settings_manager.set(key, new_val)
+                if key == "fullscreen":
+                    self.game_manager.toggle_fullscreen(new_val)
+            self.interactives.append((toggle_rect.move(screen_offset), toggle_bool))
         elif type == "int":
             l_arrow_rect = pygame.Rect(val_center_x - 70, rect.centery - 15, 30, 30)
             self.draw_arrow(surface, l_arrow_rect, "left")
@@ -101,8 +108,13 @@ class SettingsScreen:
             r_arrow_rect = pygame.Rect(val_center_x + 40, rect.centery - 15, 30, 30)
             self.draw_arrow(surface, r_arrow_rect, "right")
             low, high = spec["range"]
-            self.interactives.append((l_arrow_rect.move(screen_offset), lambda: self.settings_manager.set(key, max(low, val - 5))))
-            self.interactives.append((r_arrow_rect.move(screen_offset), lambda: self.settings_manager.set(key, min(high, val + 5))))
+            def change_int(delta):
+                new_val = max(low, min(high, val + delta))
+                self.settings_manager.set(key, new_val)
+                if key.startswith("volume"):
+                    self.game_manager.audio_manager.update_volumes()
+            self.interactives.append((l_arrow_rect.move(screen_offset), lambda: change_int(-5)))
+            self.interactives.append((r_arrow_rect.move(screen_offset), lambda: change_int(5)))
         elif type == "choice":
             l_arrow_rect = pygame.Rect(val_center_x - 110, rect.centery - 15, 30, 30)
             self.draw_arrow(surface, l_arrow_rect, "left")

@@ -22,16 +22,10 @@
         "volume_music": "Music Volume",
         "volume_sfx": "SFX Volume",
         "fullscreen": "Full Screen",
-        "difficulty": "Difficulty",
         "language": "Language",
         "show_fps": "Show FPS",
-        "difficulty_options": {
-            "Facile": "Easy",
-            "Normal": "Normal",
-            "Difficile": "Hard"
-        },
         "language_options": {
-            "Français": "French",
+            "Fran\u00e7ais": "French",
             "Anglais": "English",
             "Espagnol": "Spanish"
         }

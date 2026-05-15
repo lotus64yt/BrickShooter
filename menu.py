@@ -55,10 +55,24 @@ class Menu:
         self.play_button.update(mouse_pos)
 
     def draw(self, surface):
+        sw, sh = surface.get_size()
         surface.fill(COLOR_BG)
+        
         title_surf = self.font_title.render(self.game_manager.t("menu.title"), True, COLOR_TEXT)
-        title_rect = title_surf.get_rect(center=(SCREEN_WIDTH // 3, 50))
+        title_rect = title_surf.get_rect(center=(sw // 2, 50))
         surface.blit(title_surf, title_rect)
+        
+        # Update positions
+        self.play_button.rect.centerx = sw // 2
+        self.play_button.rect.bottom = sh - 50
+        
+        self.carousel_level.x = sw // 2
+        self.carousel_level.y = sh // 3
+        self.carousel_controls.update_pos()
+        
+        self.menu_list.x = 50
+        self.menu_list.y = sh // 4
+        
         self.play_button.draw(surface)
         self.carousel_controls.draw(surface)
         self.menu_list.draw(surface)
