@@ -1,7 +1,10 @@
+import webbrowser
+import os
 import pygame
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BG, COLOR_TEXT, STATE_GAME, STATE_SCORES, STATE_SETTINGS
 from ui_components import Button, Carousel, CarouselControls, MenuList
 from load_images import loadImages
+import webbrowser
 
 class Menu:
 
@@ -44,7 +47,11 @@ class Menu:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             item_selected = self.menu_list.get_selected_item()
             if item_selected == self.game_manager.t("menu.rules"):
-                print("Afficher les règles du jeu")
+                lang = self.game_manager.settings_manager.get("language")
+                html_map = {"Français": "reglefr.html", "Anglais": "regleang.html", "Espagnol": "reglefr.html"}
+                html_file = html_map.get(lang, "reglefr.html")
+                html_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "assets", "rules", html_file))
+                webbrowser.open(f"file://{html_path}")
             elif item_selected == self.game_manager.t("menu.scores"):
                 self.game_manager.change_state(STATE_SCORES)
             elif item_selected == self.game_manager.t("menu.settings"):

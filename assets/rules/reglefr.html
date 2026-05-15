@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang=fr>
+
+	<head>
+			<meta charset="utf-8">
+			<title>Règles Brick Shooter</title>
+			<link rel="stylesheet" type="text/css" href="css.css">
+			<link rel="icon" type="image/png" href="images/logo.png">
+	</head>
+	
+	<header>
+		<h1 class="pulse">Brick Shooter</h1>
+		
+		<h2>Règles :</h2>
+	</header>
+	
+	<div class="langue">
+		<a href="regleang.html">
+			<img src="images/angflag.png" alt="Lien vers page en anglais">
+			English
+		</a>
+	</div>
+	
+	<div class="fenetre">
+		<div class="slides">
+			<img src="images/jeu1.png" alt="Image jeu">
+			<img src="images/jeu2.png" alt="Image jeu niveau 20">
+			<img src="images/etatfr.png" alt="Image Blocs Etats">
+		</div>
+		
+		<button class="avant">&#10094;</button>
+		<button class="apres">&#10095;</button>
+	</div>
+	
+	<script src="java.js"></script>
+	
+	<br><br>
+	<body>
+		<p class="partie">BUT :</p>
+		<p>Aligner, au minimum, 3 blocs de la même couleur afin de les faire disparaître.</p>
+		<p>La manche se termine quand tous les blocs fixes (placés au début de chaque manche) ont disparu.</p>
+		<p>La partie est perdue si la zone est remplie, aucune possiblité d'acquérir plus de points.</p>
+		<br>
+		
+		<p class="partie">Comment Jouer :</p>
+		<p>● cliquer sur un bloc pouvant bouger (ceux en dehors de la zone de jeu) afin de le faire avancer.</p>
+		<p>● le bloc avançera dans la direction indiquée puis s'arrêtera quand il atteindra un autre bloc, <br> si le bloc devant lui disparait il recommencera à avancer.</p>
+		<p>● le bloc ne pourra pas changer de direction.</p>
+		<br>
+		
+		<p class="partie">Tableau des Scores :</p>
+		<table>
+			<tr><td>Blocs</td> 				<td>Points</td>
+			<tr><th class="color1">3</th> 	<th class="color1">30</th>
+			<tr><th class="color2">4</th> 	<th class="color2">60</th>
+			<tr><th class="color1">5</th> 	<th class="color1">120</th>
+			<tr><th class="color2">6</th> 	<th class="color2">240</th>
+		</table>
+	</body>
+	
+	<footer class="bas"></footer>
+</html>

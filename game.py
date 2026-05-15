@@ -9,6 +9,7 @@ from save_manager import SaveManager
 from i18n.i18n import create_translator
 from audio_manager import AudioManager
 from settings_manager import SettingsManager
+from solver.hint_controller import HintController
 
 class GameManager:
     def __init__(self):
@@ -32,6 +33,7 @@ class GameManager:
         self.save_manager = SaveManager()
         self.current_state = STATE_MENU
         self.board = Board(self)
+        self.hint_controller = HintController(self.board, self)
         
         self.update_language()
         
@@ -87,6 +89,8 @@ class GameManager:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.change_state(STATE_MENU)
+                    elif event.key == pygame.K_h:
+                        self.hint_controller.toggle()
                     elif event.key == pygame.K_n:
                         self.level += 1
                         self.board.generate_level(self.level)
@@ -144,8 +148,10 @@ class GameManager:
             self.menu.update()
         elif self.current_state == STATE_GAME:
             self.board.update(dt)
+            self.hint_controller.update()
             if not self.board.animations and not self.board.pending_logic:
                 if self.board.is_cleared():
+                    self.hint_controller.active = False
                     self.audio_manager.play_sfx("win")
                     self.level += 1
                     self.board.generate_level(self.level)
@@ -174,6 +180,7 @@ class GameManager:
             
             hint_text = self.font_game.render(self.t("ui.hints"), True, (100, 100, 100))
             self.screen.blit(hint_text, (SCREEN_WIDTH // 2 - hint_text.get_width() // 2, SCREEN_HEIGHT - 40))
+            self.hint_controller.draw(self.screen)
             
             if self.settings_manager.get("show_fps"):
                 fps_text = self.font_game.render(self.t("ui.fps", fps=int(self.clock.get_fps())), True, (0, 255, 0))
