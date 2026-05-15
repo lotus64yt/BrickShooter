@@ -45,7 +45,7 @@ class AudioManager:
     def start_music(self):
         if os.path.exists(self.music_path):
             pygame.mixer.music.load(self.music_path)
-            pygame.mixer.music.play(-1) # Loop indefinitely
+            pygame.mixer.music.play(-1)
             self.music_playing = True
 
     def stop_music(self):

@@ -69,7 +69,6 @@ class Menu:
         title_rect = title_surf.get_rect(center=(sw // 2, 50))
         surface.blit(title_surf, title_rect)
         
-        # Update positions
         self.play_button.rect.centerx = sw // 2
         self.play_button.rect.bottom = sh - 50
         

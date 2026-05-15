@@ -13,7 +13,7 @@ class SettingsScreen:
         self.font_val = pygame.font.SysFont("Arial", 24, bold=True)
         self.scroll_y = 0
         self.line_height = 80
-        self.visible_height = 0 # Will be updated in draw
+        self.visible_height = 0
         self.back_button = Button(
             20, 20, 120, 40, 
             self.game_manager.t("ui.back"), pygame.font.SysFont("Arial", 20, bold=True),

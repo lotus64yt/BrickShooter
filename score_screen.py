@@ -13,7 +13,7 @@ class ScoreScreen:
         self.scroll_y = 0
         self.scores = []
         self.line_height = 40
-        self.visible_height = 0 # Will be updated in draw
+        self.visible_height = 0
         self.total_height = 0
         self.back_button = Button(
             20, 20, 120, 40, 
