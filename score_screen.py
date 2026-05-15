@@ -112,7 +112,7 @@ class ScoreScreen:
                 if i == 0: color = (255, 215, 0)
                 elif i == 1: color = (192, 192, 192)
                 elif i == 2: color = (205, 127, 50)
-                rank_text = self.font_item.render(f"
+                rank_text = self.font_item.render(f"#{i}", True, color)
                 score_val = entry.get('score', 0)
                 level_val = entry.get('level', 0) + 1
                 status_val = entry.get('status', 'Score')
