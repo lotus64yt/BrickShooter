@@ -9,41 +9,48 @@ class ScoreManager:
 
     def ensure_directory(self):
         directory = os.path.dirname(self.filename)
-        if not os.path.exists(directory):
+        if os.path.exists(directory) == False:
             os.makedirs(directory)
 
     def save_score(self, score, level, level_seed=None, state_seed=None, session_id=None):
         scores = self.load_scores()
         updated = False
-        if session_id:
-            for s in scores:
+        if session_id != None:
+            for i in range(len(scores)):
+                s = scores[i]
                 if s.get('session_id') == session_id:
-                    s['score'] = max(score, s.get('score', 0))
-                    s['level'] = max(level, s.get('level', 0))
+                    if score > s.get('score', 0):
+                        s['score'] = score
+                    if level > s.get('level', 0):
+                        s['level'] = level
                     s['level_seed'] = level_seed
                     s['state_seed'] = state_seed
                     updated = True
                     break
-        if not updated:
-            scores.append({
+        if updated == False:
+            new_entry = {
                 "score": score,
                 "level": level,
                 "level_seed": level_seed,
                 "state_seed": state_seed,
                 "session_id": session_id
-            })
+            }
+            scores.append(new_entry)
         try:
-            with open(self.filename, 'w') as f:
-                json.dump(scores, f, indent=4)
-        except Exception as e:
-            print(f"Error saving scores: {e}")
+            f = open(self.filename, 'w')
+            json.dump(scores, f, indent=4)
+            f.close()
+        except:
+            print("Error saving scores")
 
     def load_scores(self):
-        if not os.path.exists(self.filename):
+        if os.path.exists(self.filename) == False:
             return []
         try:
-            with open(self.filename, 'r') as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"Error loading scores: {e}")
+            f = open(self.filename, 'r')
+            data = json.load(f)
+            f.close()
+            return data
+        except:
+            print("Error loading scores")
             return []

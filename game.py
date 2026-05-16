@@ -17,7 +17,7 @@ class GameManager:
         
         flags = pygame.SCALED
         if self.settings_manager.get("fullscreen"):
-            flags |= pygame.FULLSCREEN
+            flags = flags | pygame.FULLSCREEN
         
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
         pygame.display.set_caption("Brick Shooter")
@@ -42,34 +42,30 @@ class GameManager:
         self.font_game = pygame.font.SysFont('Arial', 24, bold=True)
 
     def change_state(self, new_state):
-        if self.current_state == STATE_GAME and new_state == STATE_MENU:
-            if self.score > 0:
-                print(f"Sauvegarde du score: {self.score} pour la session {self.current_session_id}")
-                self.score_manager.save_score(
-                    self.score, 
-                    self.level, 
-                    level_seed=self.board.level_seed,
-                    state_seed=self.board.get_state_seed(),
-                    session_id=self.current_session_id
-                )
-            
-            self.score = 0
-            self.level = 0
-            self.current_session_id = None
+        if self.current_state == STATE_GAME:
+            if new_state == STATE_MENU:
+                if self.score > 0:
+                    self.score_manager.save_score(
+                        self.score, 
+                        self.level, 
+                        self.board.level_seed,
+                        self.board.get_state_seed(),
+                        self.current_session_id
+                    )
+                
+                self.score = 0
+                self.level = 0
+                self.current_session_id = None
 
         self.current_state = new_state
         if new_state == STATE_GAME:
-            if not self.current_session_id:
+            if self.current_session_id == None:
                 self.board.generate_level(self.level)
                 self.current_session_id = self.save_manager.create_new_save(
                     self.level, self.score, self.board.level_seed, self.board.get_state_seed()
                 )
-            else:
-                pass
         elif new_state == STATE_SCORES:
             self.score_screen.load_scores()
-        elif new_state == STATE_SETTINGS:
-            pass
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -87,10 +83,12 @@ class GameManager:
                     if event.key == pygame.K_ESCAPE:
                         self.change_state(STATE_MENU)
                     elif event.key == pygame.K_n:
-                        self.level += 1
+                        self.level = self.level + 1
                         self.board.generate_level(self.level)
                     elif event.key == pygame.K_p:
-                        self.level = max(0, self.level - 1)
+                        self.level = self.level - 1
+                        if self.level < 0:
+                            self.level = 0
                         self.board.generate_level(self.level)
             elif self.current_state == STATE_SCORES:
                 self.score_screen.handle_events(event)
@@ -98,7 +96,7 @@ class GameManager:
                 self.settings_screen.handle_events(event)
 
     def add_score(self, pts):
-        self.score += pts
+        self.score = self.score + pts
 
     def resume_game(self, entry):
         self.score = entry.get('score', 0)
@@ -108,29 +106,38 @@ class GameManager:
         
         self.current_state = STATE_GAME
         self.board.generate_level(self.level, seed=level_seed)
-        if state_seed:
+        if state_seed != None:
             self.board.load_from_state_seed(state_seed)
         
-        self.current_session_id = entry.get('session_id') or self.save_manager.create_new_save(
-            self.level, self.score, level_seed, state_seed
-        )
+        if entry.get('session_id') != None:
+            self.current_session_id = entry.get('session_id')
+        else:
+            self.current_session_id = self.save_manager.create_new_save(
+                self.level, self.score, level_seed, state_seed
+            )
 
     def toggle_fullscreen(self, is_fullscreen):
         pygame.display.toggle_fullscreen()
 
     def auto_save(self):
-        if self.current_session_id and self.current_state == STATE_GAME:
-            self.save_manager.update_save(
-                self.current_session_id,
-                self.level,
-                self.score,
-                self.board.level_seed,
-                self.board.get_state_seed()
-            )
+        if self.current_session_id != None:
+            if self.current_state == STATE_GAME:
+                self.save_manager.update_save(
+                    self.current_session_id,
+                    self.level,
+                    self.score,
+                    self.board.level_seed,
+                    self.board.get_state_seed()
+                )
 
     def update_language(self):
-        lang_map = {"Français": "fr", "Anglais": "en", "Espagnol": "es"}
-        current_lang = lang_map.get(self.settings_manager.get("language"), "fr")
+        lang_name = self.settings_manager.get("language")
+        current_lang = "fr"
+        if lang_name == "Anglais":
+            current_lang = "en"
+        elif lang_name == "Espagnol":
+            current_lang = "es"
+            
         self.t = create_translator("i18n/locales", current_lang)
         
         self.menu = Menu(self)
@@ -142,12 +149,13 @@ class GameManager:
             self.menu.update()
         elif self.current_state == STATE_GAME:
             self.board.update(dt)
-            if not self.board.animations and not self.board.pending_logic:
-                if self.board.is_cleared():
-                    self.audio_manager.play_sfx("win")
-                    self.level += 1
-                    self.board.generate_level(self.level)
-                    self.auto_save()
+            if len(self.board.animations) == 0:
+                if self.board.pending_logic == False:
+                    if self.board.is_cleared():
+                        self.audio_manager.play_sfx("win")
+                        self.level = self.level + 1
+                        self.board.generate_level(self.level)
+                        self.auto_save()
         elif self.current_state == STATE_SCORES:
             self.score_screen.update()
         elif self.current_state == STATE_SETTINGS:
@@ -164,8 +172,8 @@ class GameManager:
             self.screen.fill(COLOR_BG)
             self.board.draw(self.screen)
             
-            level_text = self.font_game.render(f"{self.t('ui.level')}: {self.level + 1}", True, COLOR_TEXT)
-            score_text = self.font_game.render(f"{self.t('ui.score')}: {self.score}", True, COLOR_ACCENT)
+            level_text = self.font_game.render(self.t('ui.level') + ": " + str(self.level + 1), True, COLOR_TEXT)
+            score_text = self.font_game.render(self.t('ui.score') + ": " + str(self.score), True, COLOR_ACCENT)
             
             self.screen.blit(level_text, (20, 20))
             self.screen.blit(score_text, (20, 55))
@@ -174,7 +182,8 @@ class GameManager:
             self.screen.blit(hint_text, (SCREEN_WIDTH // 2 - hint_text.get_width() // 2, SCREEN_HEIGHT - 40))
             
             if self.settings_manager.get("show_fps"):
-                fps_text = self.font_game.render(self.t("ui.fps", fps=int(self.clock.get_fps())), True, (0, 255, 0))
+                fps_val = int(self.clock.get_fps())
+                fps_text = self.font_game.render(self.t("ui.fps", fps_val), True, (0, 255, 0))
                 self.screen.blit(fps_text, (self.screen.get_width() - 100, 20))
         
         pygame.display.flip()

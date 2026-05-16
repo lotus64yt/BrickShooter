@@ -18,32 +18,48 @@ class SettingsManager:
     def load(self):
         if os.path.exists(self.filename):
             try:
-                with open(self.filename, 'r') as f:
-                    loaded = json.load(f)
-                    for key, spec in self.defaults.items():
-                        self.settings[key] = spec.copy()
-                        if key in loaded:
-                            self.settings[key]["val"] = loaded[key]
-            except Exception as e:
-                print(f"Error loading config: {e}")
+                f = open(self.filename, 'r')
+                loaded = json.load(f)
+                f.close()
+                
+                keys = list(self.defaults.keys())
+                for i in range(len(keys)):
+                    key = keys[i]
+                    spec = self.defaults[key]
+                    self.settings[key] = spec.copy()
+                    if key in loaded:
+                        self.settings[key]["val"] = loaded[key]
+            except:
                 self.reset_to_defaults()
         else:
             self.reset_to_defaults()
             self.save()
 
     def reset_to_defaults(self):
-        self.settings = {k: v.copy() for k, v in self.defaults.items()}
+        self.settings = {}
+        keys = list(self.defaults.keys())
+        for i in range(len(keys)):
+            key = keys[i]
+            self.settings[key] = self.defaults[key].copy()
 
     def save(self):
-        to_save = {k: v["val"] for k, v in self.settings.items()}
+        to_save = {}
+        keys = list(self.settings.keys())
+        for i in range(len(keys)):
+            key = keys[i]
+            to_save[key] = self.settings[key]["val"]
+            
         try:
-            with open(self.filename, 'w') as f:
-                json.dump(to_save, f, indent=4)
-        except Exception as e:
-            print(f"Error saving config: {e}")
+            f = open(self.filename, 'w')
+            json.dump(to_save, f, indent=4)
+            f.close()
+        except:
+            print("Error saving config")
 
     def get(self, key):
-        return self.settings.get(key, {}).get("val")
+        if key in self.settings:
+            return self.settings[key]["val"]
+        return None
 
     def set(self, key, value):
         if key in self.settings:

@@ -1,31 +1,36 @@
 import os
 import json
-def create_translator(locales_dir, lang):
-    translations = {}
-    lang_dir = os.path.join(locales_dir, lang)
-    if os.path.exists(lang_dir):
-        for filename in os.listdir(lang_dir):
-            file_path = os.path.join(lang_dir, filename)
-            if os.path.isfile(file_path):
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        translations.update(data)
-                except Exception as e:
-                    print(f"Error loading translation file {file_path}: {e}")
 
-    def t(key, **kwargs):
+class Translator:
+    def __init__(self, locales_dir, lang):
+        self.translations = {}
+        lang_dir = locales_dir + "/" + lang
+        if os.path.exists(lang_dir):
+            files = os.listdir(lang_dir)
+            for filename in files:
+                file_path = lang_dir + "/" + filename
+                if os.path.isfile(file_path):
+                    f = open(file_path, 'r', encoding='utf-8')
+                    data = json.load(f)
+                    f.close()
+                    for key in data:
+                        self.translations[key] = data[key]
+
+    def translate(self, key, arg1=None):
         keys = key.split('.')
-        value = translations
+        value = self.translations
         for k in keys:
-            if isinstance(value, dict) and k in value:
+            if k in value:
                 value = value[k]
             else:
                 return key
+        
         if isinstance(value, str):
-            try:
-                return value.format(**kwargs)
-            except KeyError:
-                return value
+            if arg1 != None:
+                return value.replace("{fps}", str(arg1))
+            return value
         return str(value)
-    return t
+
+def create_translator(locales_dir, lang):
+    t_obj = Translator(locales_dir, lang)
+    return t_obj.translate

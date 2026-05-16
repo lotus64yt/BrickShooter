@@ -4,7 +4,6 @@ import pygame
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BG, COLOR_TEXT, STATE_GAME, STATE_SCORES, STATE_SETTINGS
 from ui_components import Button, Carousel, CarouselControls, MenuList
 from load_images import loadImages
-import webbrowser
 
 class Menu:
 
@@ -27,13 +26,15 @@ class Menu:
             self.font_button
         )
         self.carousel_controls = CarouselControls(self.carousel_level, self.font_button)
+        
+        items = []
+        items.append(self.game_manager.t("menu.rules"))
+        items.append(self.game_manager.t("menu.scores"))
+        items.append(self.game_manager.t("menu.settings"))
+        
         self.menu_list = MenuList(
             50, SCREEN_HEIGHT // 4, 200, 300,
-            [
-                self.game_manager.t("menu.rules"), 
-                self.game_manager.t("menu.scores"), 
-                self.game_manager.t("menu.settings")
-            ],
+            items,
             self.font_button
         )
 
@@ -44,40 +45,47 @@ class Menu:
         self.play_button.handle_event(event)
         self.menu_list.handle_event(event)
         self.carousel_controls.handle_event(event)
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            item_selected = self.menu_list.get_selected_item()
-            if item_selected == self.game_manager.t("menu.rules"):
-                lang = self.game_manager.settings_manager.get("language")
-                html_map = {"Français": "reglefr.html", "Anglais": "regleang.html", "Espagnol": "reglefr.html"}
-                html_file = html_map.get(lang, "reglefr.html")
-                html_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "assets", "rules", html_file))
-                webbrowser.open(f"file://{html_path}")
-            elif item_selected == self.game_manager.t("menu.scores"):
-                self.game_manager.change_state(STATE_SCORES)
-            elif item_selected == self.game_manager.t("menu.settings"):
-                self.game_manager.change_state(STATE_SETTINGS)
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                item_selected = self.menu_list.get_selected_item()
+                if item_selected == self.game_manager.t("menu.rules"):
+                    lang = self.game_manager.settings_manager.get("language")
+                    html_file = "reglefr.html"
+                    if lang == "Anglais":
+                        html_file = "regleang.html"
+                    elif lang == "Espagnol":
+                        html_file = "reglefr.html"
+                    
+                    html_path = os.path.abspath("assets/rules/" + html_file)
+                    webbrowser.open("file://" + html_path)
+                elif item_selected == self.game_manager.t("menu.scores"):
+                    self.game_manager.change_state(STATE_SCORES)
+                elif item_selected == self.game_manager.t("menu.settings"):
+                    self.game_manager.change_state(STATE_SETTINGS)
 
     def update(self):
         mouse_pos = pygame.mouse.get_pos()
         self.play_button.update(mouse_pos)
 
     def draw(self, surface):
-        sw, sh = surface.get_size()
+        sw = surface.get_width()
+        sh = surface.get_height()
         surface.fill(COLOR_BG)
         
         title_surf = self.font_title.render(self.game_manager.t("menu.title"), True, COLOR_TEXT)
-        title_rect = title_surf.get_rect(center=(sw // 2, 50))
-        surface.blit(title_surf, title_rect)
+        title_x = sw // 2 - title_surf.get_width() // 2
+        surface.blit(title_surf, (title_x, 50))
         
-        self.play_button.rect.centerx = sw // 2
-        self.play_button.rect.bottom = sh - 50
+        self.play_button.rect.x = sw // 2 - self.play_button.rect.width // 2
+        self.play_button.rect.y = sh - 50 - self.play_button.rect.height
         
-        self.carousel_level.x = sw // 2
-        self.carousel_level.y = sh // 3
+        self.carousel_level.rect.x = sw // 2 - self.carousel_level.rect.width // 2
+        self.carousel_level.rect.y = sh // 3 - self.carousel_level.rect.height // 2
         self.carousel_controls.update_pos()
         
-        self.menu_list.x = 50
-        self.menu_list.y = sh // 4
+        self.menu_list.rect.x = 50
+        self.menu_list.rect.y = sh // 4
         
         self.play_button.draw(surface)
         self.carousel_controls.draw(surface)

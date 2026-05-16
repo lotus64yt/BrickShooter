@@ -14,26 +14,29 @@ class AudioManager:
 
     def load_assets(self):
         audio_dir = "assets/audio"
-        sound_files = {
-            "move": "move.mp3",
-            "clear": "clear.mp3",
-            "win": "win.mp3"
-        }
         
-        for key, filename in sound_files.items():
-            path = os.path.join(audio_dir, filename)
+        names = ["move", "clear", "win"]
+        files = ["move.mp3", "clear.mp3", "win.mp3"]
+        
+        for i in range(len(names)):
+            name = names[i]
+            filename = files[i]
+            path = audio_dir + "/" + filename
             if os.path.exists(path):
-                self.sounds[key] = pygame.mixer.Sound(path)
+                self.sounds[name] = pygame.mixer.Sound(path)
             else:
-                print(f"Warning: Audio file not found: {path}")
+                print("Warning: Audio file not found: " + path)
 
-        self.music_path = os.path.join(audio_dir, "music.mp3")
+        self.music_path = audio_dir + "/music.mp3"
 
     def update_volumes(self):
         sfx_vol = self.settings_manager.get("volume_sfx") / 100.0
         music_vol = self.settings_manager.get("volume_music") / 100.0
         
-        for sound in self.sounds.values():
+        keys = list(self.sounds.keys())
+        for i in range(len(keys)):
+            name = keys[i]
+            sound = self.sounds[name]
             sound.set_volume(sfx_vol)
         
         pygame.mixer.music.set_volume(music_vol)
@@ -53,7 +56,9 @@ class AudioManager:
         self.music_playing = False
 
     def toggle_music(self, play):
-        if play and not self.music_playing:
-            self.start_music()
-        elif not play and self.music_playing:
-            self.stop_music()
+        if play == True:
+            if self.music_playing == False:
+                self.start_music()
+        else:
+            if self.music_playing == True:
+                self.stop_music()
