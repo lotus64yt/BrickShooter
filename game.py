@@ -15,7 +15,11 @@ class GameManager:
         pygame.init()
         self.settings_manager = SettingsManager()
         
-        flags = pygame.SCALED
+        try:
+            flags = pygame.SCALED
+        except AttributeError:
+            flags = 0
+            
         if self.settings_manager.get("fullscreen"):
             flags = flags | pygame.FULLSCREEN
         
