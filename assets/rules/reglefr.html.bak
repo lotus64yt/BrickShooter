@@ -3,20 +3,20 @@
 
 	<head>
 			<meta charset="utf-8">
-			<title>Brick Shooter Rules </title>
+			<title>Règles Brick Shooter</title>
 			<link rel="stylesheet" type="text/css" href="css.css">
 			<link rel="icon" type="image/png" href="images/logo.png">
 	</head>
 	
 	<header>
 		<h1 class="pulse">Brick Shooter</h1>
-		<h2>Rules :</h2>
+		<h2>Règles :</h2>
 	</header>
 	
 	<div class="langue1">
-		<a href="reglefr.html">
-			<img src="images/frflag.png" alt="Lien vers page en anglais">
-			Français
+		<a href="regleang.html">
+			<img src="images/angflag.png" alt="Lien vers page en anglais">
+			English
 		</a>
 	</div>
 	<div class="langue2">
@@ -30,7 +30,7 @@
 		<div class="slides">
 			<img src="images/jeu1.png" alt="Image jeu">
 			<img src="images/jeu2.png" alt="Image jeu niveau 20">
-			<img src="images/etatang.png" alt="Image Blocs Etats">
+			<img src="images/etatesp.png" alt="Image Blocs Etats">
 		</div>
 		
 		<button class="avant">&#10094;</button>
@@ -41,21 +41,21 @@
 	
 	<br><br>
 	<body>
-		<p class="partie">GOAL :</p>
-		<p>Line at least 3 blocks up of the same color to make them disappear.</p>
-		<p>The round ends when all the fixed blocks (placed at the beginning of the round) have disappeared.</p>
-		<p>The game is lost if the zone is filled ; there is no possibility of acquiring more points.</p>
+		<p class="partie">GOL :</p>
+		<p>Alinear, como mínimo, 3 bloques del mismo color para hacerlos desaparecer.</p>
+		<p>La ronda termina cuando todos los bloques fijos (colocados al inicio de cada ronda) han desaparecido.</p>
+		<p>El juego se pierde si la zona está llena, sin posibilidad de obtener más puntos.</p>
 		<br>
 		
-		<p class="partie">How To Play :</p>
-		<p>● click on a movable block (outside the playing area) to make it move forward.</p>
-		<p>● the block will move in the indicated direction and then stop when it reaches another block ; <br> if the block in front of it disappears, it will start moving again.</p>
-		<p>● the block will not be able to change direction.</p>
+		<p class="partie">Cómo jugar :</p>
+		<p>● hacer clic en un bloque que pueda moverse (los que están fuera de la zona de juego) para hacerlo avanzar.</p>
+		<p>● el bloque avanzará en la dirección indicada y luego se detendrá cuando alcance otro bloque, <br> si el bloque frente a él desaparece, volverá a avanzar.</p>
+		<p>● el bloque no podrá cambiar de dirección.</p>
 		<br>
 		
-		<p class="partie">Score Table :</p>
+		<p class="partie">Tabla de puntuaciones :</p>
 		<table>
-			<tr><td>Blocks</td> 				<td>Points</td>
+			<tr><td>Bloques</td> 				<td>Puntos</td>
 			<tr><th class="color1">3</th> 	<th class="color1">30</th>
 			<tr><th class="color2">4</th> 	<th class="color2">60</th>
 			<tr><th class="color1">5</th> 	<th class="color1">120</th>
@@ -64,6 +64,4 @@
 	</body>
 	
 	<footer class="bas"></footer>
-	
-	
 </html>

@@ -12,7 +12,7 @@ img {
 	cursor: pointer;
 }
 
-.langue a{
+.langue1 a{
 	color : #fff ; 
 	font-family: 'Gill Sans', 'DejaVu Sans', sans-serif;
 	font-size: 150%;
@@ -25,6 +25,21 @@ img {
 	position: absolute;
 	left: 2% ;
 	top: 4% ;
+}
+
+.langue2 a{
+	color : #fff ; 
+	font-family: 'Gill Sans', 'DejaVu Sans', sans-serif;
+	font-size: 150%;
+	text-decoration: none;
+	width: fit-content;
+	font-weight: bold;
+	display: infinite-flex;
+	align-items: center;
+	gap : 8px;
+	position: absolute;
+	left: 2% ;
+	top: 10% ;
 }
 
 h1{
