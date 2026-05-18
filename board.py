@@ -29,6 +29,27 @@ class Board:
         self.pending_logic = False
         self.needs_save = False
 
+        self.troll_images = []
+        troll_filenames = ["rouge.png", "vert.png", "orange.png", "bleu.png", "violet.png", "rose.png"]
+        troll_dir = "assets/images/troll"
+        import os
+        for filename in troll_filenames:
+            img_path = os.path.join(troll_dir, filename)
+            if os.path.exists(img_path):
+                try:
+                    img = pygame.image.load(img_path).convert_alpha()
+                    block_size = CELL_SIZE - 6
+                    scaled_img = pygame.transform.smoothscale(img, (block_size, block_size))
+                    self.troll_images.append(scaled_img)
+                except Exception as e:
+                    print(f"Error loading troll image {filename}: {e}")
+                    fallback = pygame.Surface((CELL_SIZE - 6, CELL_SIZE - 6), pygame.SRCALPHA)
+                    self.troll_images.append(fallback)
+            else:
+                print(f"Troll image {filename} not found at {img_path}")
+                fallback = pygame.Surface((CELL_SIZE - 6, CELL_SIZE - 6), pygame.SRCALPHA)
+                self.troll_images.append(fallback)
+
     def generate_level(self, level_idx, seed=None):
         self.level = level_idx
         if seed == None:
@@ -588,6 +609,25 @@ class Board:
                                         offset_y + anim['pos_y']))
 
     def _draw_block_at(self, surface, cell, x, y, alpha):
+        if self.game_manager.settings_manager.get("troll_mode"):
+            color_idx = -1
+            for i in range(len(BLOCK_COLORS)):
+                if BLOCK_COLORS[i] == cell['color']:
+                    color_idx = i
+                    break
+            
+            if 0 <= color_idx < 6:
+                img = self.troll_images[color_idx]
+                dest_rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE).inflate(-6, -6)
+                if alpha == 255:
+                    surface.blit(img, dest_rect)
+                else:
+                    temp_surf = pygame.Surface(dest_rect.size, pygame.SRCALPHA)
+                    temp_surf.blit(img, (0, 0))
+                    temp_surf.set_alpha(alpha)
+                    surface.blit(temp_surf, dest_rect)
+                return
+
         color = cell['color']
         if alpha < 255:
             r = int(color[0] * (alpha/255) + 18 * (1 - alpha/255))

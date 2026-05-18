@@ -3,5 +3,6 @@
     "volume_sfx": 80,
     "fullscreen": false,
     "language": "Fran\u00e7ais",
-    "show_fps": true
+    "show_fps": true,
+    "troll_mode": true
 }

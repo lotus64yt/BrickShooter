@@ -24,6 +24,7 @@
         "fullscreen": "Plein \u00c9cran",
         "language": "Langue",
         "show_fps": "Afficher FPS",
+        "troll_mode": "Mode Troll",
         "language_options": {
             "Fran\u00e7ais": "Fran\u00e7ais",
             "Anglais": "Anglais",
