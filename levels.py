@@ -1,3 +1,6 @@
+"""
+Définition des données pour les niveaux prédéfinis du jeu.
+"""
 LEVEL_DATA = [
     [
         "XXXXXXXXXX",

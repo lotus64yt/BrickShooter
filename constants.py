@@ -1,3 +1,6 @@
+"""
+Constantes globales utilisées dans tout le jeu BrickShooter.
+"""
 import pygame
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800

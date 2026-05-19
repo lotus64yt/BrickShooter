@@ -13,8 +13,10 @@ def draw_rect_compat(surface, color, rect, radius=0):
 from levels import LEVEL_DATA
 
 class Board:
+    """Gère la logique principale de la grille de jeu, les animations, et l'état des blocs."""
 
     def __init__(self, game_manager):
+        """Initialise le plateau de jeu, la grille et précharge les ressources visuelles (ex: mode troll)."""
         self.game_manager = game_manager
         self.grid = []
         for i in range(GRID_SIZE):
@@ -51,6 +53,7 @@ class Board:
                 self.troll_images.append(fallback)
 
     def generate_level(self, level_idx, seed=None):
+        """Génère un niveau spécifique (prédéfini ou aléatoire) basé sur son index et une graine optionnelle."""
         self.level = level_idx
         if seed == None:
             self.level_seed = random.randint(0, 999999)
@@ -163,6 +166,7 @@ class Board:
                         }
 
     def get_firing_head(self, x, y):
+        """Détermine la position et la direction du bloc périphérique le plus proche pouvant être tiré vers la ligne (x, y)."""
         if x < 0 or x >= GRID_SIZE or y < 0 or y >= GRID_SIZE:
             return None, None
 
@@ -185,6 +189,7 @@ class Board:
         return None, None
 
     def is_line_firable(self, x, y, direction):
+        """Vérifie si une ligne est libre pour tirer un bloc dans la direction donnée sans qu'il soit bloqué à l'entrée."""
         if direction == "down":
             if self.grid[INNER_START][x] != None:
                 return False
@@ -209,6 +214,7 @@ class Board:
         return False
 
     def handle_click(self, mouse_pos):
+        """Gère le clic du joueur sur le plateau de jeu (tire un bloc si possible)."""
         if len(self.animations) > 0:
             return
         rel_x = mouse_pos[0] - BOARD_OFFSET_X
@@ -225,6 +231,7 @@ class Board:
                     self.needs_save = True
 
     def fire_block(self, x, y, direction):
+        """Déclenche l'animation et la logique pour tirer un bloc depuis la périphérie vers le centre."""
         block = self.grid[y][x]
         block['dir'] = direction
         self.grid[y][x] = None
@@ -275,6 +282,7 @@ class Board:
         self.refill_column_or_row(x, y, direction)
 
     def apply_inertia(self):
+        """Déplace les blocs du centre selon leur direction initiale s'ils ont de l'espace devant eux."""
         to_move = []
         for y in range(INNER_START, INNER_END):
             for x in range(INNER_START, INNER_END):
@@ -317,6 +325,7 @@ class Board:
         return False
 
     def _get_exit_pos(self, x, y, direction):
+        """Calcule la position de sortie de la zone centrale pour un bloc allant dans une certaine direction."""
         if direction == "down": return (x, INNER_END - 1)
         if direction == "up": return (x, INNER_START)
         if direction == "right": return (INNER_END - 1, y)
@@ -324,6 +333,7 @@ class Board:
         return (x, y)
 
     def _add_move_anim(self, block, start_grid, end_grid, special_action):
+        """Ajoute une animation de déplacement de bloc à la file d'attente d'animations."""
         anim = {
             'type': 'move',
             'block': block,
@@ -344,6 +354,7 @@ class Board:
         self.animations.append(anim)
 
     def enter_column(self, x, y, direction, block):
+        """Gère l'insertion d'un bloc de l'autre côté du plateau (effet pac-man / torique)."""
         if direction == "down":
             block['dir'] = "up"
             for hy in range(GRID_SIZE - 1, INNER_END, -1):
@@ -366,6 +377,7 @@ class Board:
             self.grid[y][INNER_START-1] = block
 
     def update_logic_step(self):
+        """Effectue une étape de la logique (trouver les matchs ou appliquer l'inertie)."""
         matches = self.find_matches()
         if len(matches) > 0:
             self.game_manager.audio_manager.play_sfx("clear")
@@ -394,6 +406,7 @@ class Board:
         return False
 
     def _add_fade_anim(self, block, grid_pos):
+        """Ajoute une animation de disparition (fade-out) pour un bloc."""
         anim = {
             'type': 'fade',
             'block': block,
@@ -405,6 +418,7 @@ class Board:
         self.animations.append(anim)
 
     def _add_score_text_anim(self, score, grid_pos):
+        """Ajoute une animation d'apparition de texte pour le score gagné."""
         anim = {
             'type': 'score_text',
             'text': "+" + str(score),
@@ -418,6 +432,7 @@ class Board:
         self.animations.append(anim)
 
     def update(self, dt):
+        """Met à jour les animations et l'état du jeu à chaque frame."""
         if len(self.animations) == 0:
             if self.pending_logic:
                 if self.update_logic_step() == False:
@@ -458,6 +473,7 @@ class Board:
             self.animations = []
 
     def find_matches(self):
+        """Cherche tous les groupes de 3 blocs ou plus de la même couleur connectés orthogonalement."""
         to_remove = []
         visited = []
         for y in range(INNER_START, INNER_END):
@@ -485,6 +501,7 @@ class Board:
         return to_remove
 
     def _get_connected_component(self, start_x, start_y, color):
+        """Récupère tous les blocs connectés à partir d'un point de départ et partageant la même couleur."""
         component = []
         stack = [(start_x, start_y)]
         visited = [(start_x, start_y)]
@@ -510,6 +527,7 @@ class Board:
         return component
 
     def refill_column_or_row(self, x, y, direction):
+        """Remplit la périphérie après qu'un bloc a été tiré, en générant un nouveau bloc aléatoire."""
         num_colors = 2 + self.level
         if num_colors > len(BLOCK_COLORS):
             num_colors = len(BLOCK_COLORS)
@@ -535,6 +553,7 @@ class Board:
             self.grid[y][GRID_SIZE-1] = {'color': self.rng.choice(available_colors), 'dir': 'left'}
 
     def draw(self, surface):
+        """Dessine le plateau, les blocs, les bordures et les animations sur la surface de l'écran."""
         sw = surface.get_width()
         sh = surface.get_height()
         board_size = GRID_SIZE * CELL_SIZE
@@ -609,6 +628,7 @@ class Board:
                                         offset_y + anim['pos_y']))
 
     def _draw_block_at(self, surface, cell, x, y, alpha):
+        """Dessine un bloc spécifique à l'écran, en prenant en compte sa couleur, l'opacité, ou le mode troll."""
         if self.game_manager.settings_manager.get("troll_mode"):
             color_idx = -1
             for i in range(len(BLOCK_COLORS)):
@@ -650,6 +670,7 @@ class Board:
             draw_rect_compat(surface, color, bottom_rect, 6)
 
     def _draw_arrow(self, surface, rect, direction, color, alpha):
+        """Dessine une flèche directionnelle sur un bloc."""
         center_x = rect.centerx
         center_y = rect.centery
         size = CELL_SIZE // 4
@@ -667,6 +688,7 @@ class Board:
         pygame.draw.polygon(surface, (0, 0, 0), points, 2)
 
     def _draw_cross(self, surface, rect):
+        """Dessine une croix rouge indiquant qu'un tir est invalide."""
         center_x = rect.centerx
         center_y = rect.centery
         size = CELL_SIZE // 4
@@ -677,6 +699,7 @@ class Board:
         pygame.draw.line(surface, color, (center_x + size, center_y - size), (center_x - size, center_y + size), 3)
 
     def is_cleared(self):
+        """Vérifie si la zone centrale du plateau est entièrement vidée de blocs."""
         for y in range(INNER_START, INNER_END):
             for x in range(INNER_START, INNER_END):
                 if self.grid[y][x] != None:
@@ -684,6 +707,7 @@ class Board:
         return True
 
     def get_state_seed(self):
+        """Génère une chaîne de caractères encodant l'état complet du plateau de jeu pour sauvegarde."""
         chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
         seed_parts = []
         for y in range(GRID_SIZE):
@@ -709,6 +733,7 @@ class Board:
         return "".join(seed_parts)
 
     def load_from_state_seed(self, state_seed):
+        """Recharge l'état du plateau de jeu à partir de la chaîne de caractères sauvegardée."""
         chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
         if len(state_seed) != GRID_SIZE * GRID_SIZE:
             return False

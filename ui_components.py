@@ -2,14 +2,17 @@ import pygame
 from constants import COLOR_TEXT, COLOR_BUTTON, COLOR_BUTTON_HOVER, COLOR_ACCENT
 
 def draw_rect_compat(surface, color, rect, radius=0):
+    """Dessine un rectangle (avec coins arrondis si supporté) de manière compatible entre les versions Pygame."""
     try:
         pygame.draw.rect(surface, color, rect, 0, border_radius=radius)
     except:
         pygame.draw.rect(surface, color, rect, 0)
 
 class Button:
+    """Composant bouton cliquable interactif."""
 
     def __init__(self, x, y, width, height, text, font, action=None):
+        """Initialise le bouton avec sa position, taille, texte et fonction associée."""
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
         self.font = font
@@ -17,6 +20,7 @@ class Button:
         self.is_hovered = False
 
     def draw(self, surface):
+        """Dessine le bouton et son texte (couleur changeante au survol)."""
         color = COLOR_BUTTON_HOVER if self.is_hovered else COLOR_BUTTON
         border_rect = self.rect.inflate(4, 4)
         draw_rect_compat(surface, COLOR_ACCENT, border_rect, 12)
@@ -26,22 +30,27 @@ class Button:
         surface.blit(text_surf, text_rect)
 
     def update(self, mouse_pos):
+        """Vérifie si la souris survole le bouton."""
         self.is_hovered = self.rect.collidepoint(mouse_pos)
 
     def handle_event(self, event):
+        """Gère le clic gauche pour déclencher l'action du bouton."""
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.is_hovered and self.action:
                 self.action()
 
 class Carousel:
+    """Composant affichant un carrousel d'images."""
 
     def __init__(self, x, y, width, height, items, font):
+        """Initialise la liste d'images du carrousel."""
         self.rect = pygame.Rect(x - width // 2, y - height // 2, width, height)
         self.items = items
         self.font = font
         self.current_index = 0
 
     def draw(self, surface):
+        """Dessine l'image actuellement sélectionnée."""
         if not self.items:
             return
         if isinstance(self.items, dict):
@@ -53,26 +62,32 @@ class Carousel:
         surface.blit(scaled_image, self.rect)
 
     def next_item(self):
+        """Passe à l'élément suivant."""
         if self.items:
             self.current_index = (self.current_index + 1) % len(self.items)
 
     def previous_item(self):
+        """Passe à l'élément précédent."""
         if self.items:
             self.current_index = (self.current_index - 1) % len(self.items)
 
 class CarouselControls:
+    """Gère les flèches de navigation d'un carrousel."""
 
     def __init__(self, carousel, font):
+        """Initialise les contrôles en se liant à une instance de Carousel."""
         self.carousel = carousel
         self.font = font
         self.button_size = 40
         self.update_pos()
 
     def update_pos(self):
+        """Recalcule la position des flèches en fonction du carrousel."""
         self.left_button_rect = pygame.Rect(self.carousel.rect.x - self.button_size - 20, self.carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
         self.right_button_rect = pygame.Rect(self.carousel.rect.right + 20, self.carousel.rect.centery - self.button_size // 2, self.button_size, self.button_size)
 
     def draw(self, surface):
+        """Dessine les triangles (flèches) pour changer l'image."""
         pygame.draw.polygon(surface, COLOR_ACCENT, [
             (self.left_button_rect.centerx + 10, self.left_button_rect.centery - 10),
             (self.left_button_rect.centerx + 10, self.left_button_rect.centery + 10),
@@ -86,6 +101,7 @@ class CarouselControls:
         self.carousel.draw(surface)
 
     def handle_event(self, event):
+        """Traite les clics sur les flèches pour faire défiler le carrousel."""
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = event.pos
             if self.left_button_rect.collidepoint(mouse_pos):
@@ -94,14 +110,17 @@ class CarouselControls:
                 self.carousel.next_item()
 
 class MenuList:
+    """Affiche une liste interactive d'éléments cliquables."""
 
     def __init__(self, x, y, width, height, items, font):
+        """Initialise la liste et l'index de sélection."""
         self.rect = pygame.Rect(x, y, width, height)
         self.items = items
         self.font = font
         self.selected_index = 0
 
     def draw(self, surface):
+        """Dessine la liste et met en évidence l'élément survolé."""
         for index in range(len(self.items)):
             item = self.items[index]
             color = COLOR_TEXT
@@ -112,6 +131,7 @@ class MenuList:
             surface.blit(text_surf, text_rect)
 
     def hover_item(self, mouse_pos):
+        """Détermine quel élément est survolé par la souris."""
         self.selected_index = -1
         for index in range(len(self.items)):
             item_rect = pygame.Rect(self.rect.x, self.rect.y + index * 40, self.rect.width, 40)
@@ -120,10 +140,12 @@ class MenuList:
                 break
 
     def handle_event(self, event):
+        """Met à jour l'élément survolé au mouvement de la souris."""
         if event.type == pygame.MOUSEMOTION:
             self.hover_item(pygame.mouse.get_pos())
 
     def get_selected_item(self):
+        """Retourne l'élément actuellement pointé par la souris."""
         if self.selected_index >= 0 and self.selected_index < len(self.items):
             return self.items[self.selected_index]
         return None

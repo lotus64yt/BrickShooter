@@ -2,6 +2,7 @@ import pygame
 import os
 
 def loadImages(path):
+    """Charge et retourne un dictionnaire contenant les images du dossier spécifié."""
     images = {}
     filesInFolder = os.listdir(path)
     

@@ -6,10 +6,11 @@ from ui_components import Button, Carousel, CarouselControls, MenuList
 from load_images import loadImages
 
 class Menu:
+    """Gère l'affichage et les interactions du menu principal du jeu."""
 
     def __init__(self, game_manager):
+        """Initialise les composants UI du menu principal (boutons, carrousel, listes)."""
         self.game_manager = game_manager
-        self.font_title = pygame.font.SysFont("Arial", 60, bold=True)
         self.font_button = pygame.font.SysFont("Arial", 32)
         btn_width = 200
         btn_height = 60
@@ -39,9 +40,11 @@ class Menu:
         )
 
     def start_game(self):
+        """Change l'état pour démarrer ou reprendre le jeu."""
         self.game_manager.change_state(STATE_GAME)
 
     def handle_events(self, event):
+        """Gère les événements Pygame reçus dans le menu."""
         self.play_button.handle_event(event)
         self.menu_list.handle_event(event)
         self.carousel_controls.handle_event(event)
@@ -55,7 +58,7 @@ class Menu:
                     if lang == "Anglais":
                         html_file = "regleang.html"
                     elif lang == "Espagnol":
-                        html_file = "reglefr.html"
+                        html_file = "regleesp.html"
 
                     html_path = os.path.abspath("assets/rules/" + html_file)
                     webbrowser.open("file://" + html_path)
@@ -65,10 +68,12 @@ class Menu:
                     self.game_manager.change_state(STATE_SETTINGS)
 
     def update(self):
+        """Met à jour l'état des composants du menu selon la position de la souris."""
         mouse_pos = pygame.mouse.get_pos()
         self.play_button.update(mouse_pos)
 
     def draw(self, surface):
+        """Dessine les éléments graphiques du menu sur la surface donnée."""
         sw = surface.get_width()
         sh = surface.get_height()
         surface.fill(COLOR_BG)

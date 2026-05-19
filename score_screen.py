@@ -10,8 +10,10 @@ from ui_components import Button
 from score_manager import ScoreManager
 
 class ScoreScreen:
+    """Écran affichant les meilleurs scores et permettant de reprendre les parties en cours."""
 
     def __init__(self, game_manager):
+        """Initialise l'écran des scores, la police d'écriture et les boutons."""
         self.game_manager = game_manager
         self.score_manager = ScoreManager()
         self.font_title = pygame.font.SysFont("Arial", 48, bold=True)
@@ -28,9 +30,11 @@ class ScoreScreen:
         )
 
     def go_back(self):
+        """Retourne au menu principal."""
         self.game_manager.change_state(STATE_MENU)
 
     def load_scores(self):
+        """Charge, fusionne et trie les scores terminés et les parties en cours depuis le gestionnaire de sauvegardes."""
         finished_scores = self.score_manager.load_scores()
         active_saves = self.game_manager.save_manager.list_saves()
         self.scores = []
@@ -78,6 +82,7 @@ class ScoreScreen:
         self.scroll_y = 0
 
     def handle_events(self, event):
+        """Gère les interactions de l'utilisateur (clics, touches, défilement) sur cet écran."""
         sw = self.game_manager.screen.get_width()
         sh = self.game_manager.screen.get_height()
         self.back_button.handle_event(event)
@@ -103,6 +108,7 @@ class ScoreScreen:
             self.limit_scroll()
 
     def limit_scroll(self):
+        """Empêche le défilement de dépasser les limites de la liste des scores."""
         if self.total_height <= self.visible_height:
             self.scroll_y = 0
             return
@@ -113,9 +119,11 @@ class ScoreScreen:
             self.scroll_y = 0
 
     def update(self):
+        """Met à jour l'état des éléments interactifs (ex: bouton retour)."""
         self.back_button.update(pygame.mouse.get_pos())
 
     def draw(self, surface):
+        """Dessine l'écran complet avec la liste défilante des scores et le titre."""
         sw = surface.get_width()
         sh = surface.get_height()
         self.visible_height = sh - 250

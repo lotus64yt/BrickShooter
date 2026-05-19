@@ -2,8 +2,10 @@ import json
 import os
 
 class SettingsManager:
+    """Gestionnaire des paramètres et de la configuration du jeu."""
 
     def __init__(self, filename="config.json"):
+        """Initialise le gestionnaire et charge les paramètres depuis le fichier de configuration."""
         self.filename = filename
         self.defaults = {
             "volume_music": {"val": 70, "type": "int", "range": (0, 100), "label": "Volume Musique"},
@@ -17,6 +19,7 @@ class SettingsManager:
         self.load()
 
     def load(self):
+        """Charge les paramètres depuis le fichier JSON s'il existe, sinon utilise les valeurs par défaut."""
         if os.path.exists(self.filename):
             try:
                 f = open(self.filename, 'r')
@@ -37,6 +40,7 @@ class SettingsManager:
             self.save()
 
     def reset_to_defaults(self):
+        """Réinitialise tous les paramètres à leurs valeurs par défaut définies."""
         self.settings = {}
         keys = list(self.defaults.keys())
         for i in range(len(keys)):
@@ -44,6 +48,7 @@ class SettingsManager:
             self.settings[key] = self.defaults[key].copy()
 
     def save(self):
+        """Sauvegarde les paramètres actuels dans le fichier JSON."""
         to_save = {}
         keys = list(self.settings.keys())
         for i in range(len(keys)):
@@ -58,11 +63,13 @@ class SettingsManager:
             print("Error saving config")
 
     def get(self, key):
+        """Récupère la valeur d'un paramètre spécifique via sa clé."""
         if key in self.settings:
             return self.settings[key]["val"]
         return None
 
     def set(self, key, value):
+        """Modifie la valeur d'un paramètre donné et sauvegarde immédiatement les changements."""
         if key in self.settings:
             self.settings[key]["val"] = value
             self.save()

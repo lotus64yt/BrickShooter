@@ -10,8 +10,10 @@ from ui_components import Button
 from settings_manager import SettingsManager
 
 class SettingsScreen:
+    """Écran permettant de consulter et de modifier les paramètres du jeu."""
 
     def __init__(self, game_manager):
+        """Initialise l'écran des paramètres avec ses polices d'écriture et variables d'état."""
         self.game_manager = game_manager
         self.settings_manager = self.game_manager.settings_manager
         self.font_title = pygame.font.SysFont("Arial", 48, bold=True)
@@ -28,9 +30,11 @@ class SettingsScreen:
         self.interactives = []
 
     def go_back(self):
+        """Retourne au menu principal."""
         self.game_manager.change_state(STATE_MENU)
 
     def handle_events(self, event):
+        """Réceptionne et traite les événements Pygame (clics, clavier, molette souris)."""
         self.back_button.handle_event(event)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -43,6 +47,7 @@ class SettingsScreen:
                 self.handle_click(event.pos)
 
     def handle_click(self, pos):
+        """Détecte les clics sur les éléments interactifs pour modifier les paramètres correspondants."""
         for i in range(len(self.interactives)):
             item = self.interactives[i]
             rect = item[0]
@@ -91,6 +96,7 @@ class SettingsScreen:
                 break
 
     def limit_scroll(self):
+        """Bloque le défilement vertical pour qu'il reste dans les limites du contenu affiché."""
         total_height = len(self.settings_manager.settings) * self.line_height
         if total_height <= self.visible_height:
             self.scroll_y = 0
@@ -102,9 +108,11 @@ class SettingsScreen:
             self.scroll_y = 0
 
     def update(self):
+        """Met à jour l'état visuel du bouton retour."""
         self.back_button.update(pygame.mouse.get_pos())
 
     def draw(self, surface):
+        """Dessine l'écran des paramètres, la liste défilante et la barre de défilement."""
         sw = surface.get_width()
         sh = surface.get_height()
         self.visible_height = sh - 250
@@ -150,6 +158,7 @@ class SettingsScreen:
         surface.blit(footer_text, (sw // 2 - footer_text.get_width() // 2, sh - 60))
 
     def draw_setting_row(self, surface, key, spec, rect, screen_offset):
+        """Dessine une ligne pour un paramètre spécifique, incluant son label et son contrôle (toggle, flèches)."""
         label_text = self.game_manager.t("settings." + key)
         label_surf = self.font_label.render(label_text, True, COLOR_TEXT)
         surface.blit(label_surf, (20, rect.y + (rect.height // 2 - label_surf.get_height() // 2)))
@@ -203,6 +212,7 @@ class SettingsScreen:
             self.interactives.append((abs_r, "change_choice", key, "next"))
 
     def draw_arrow(self, surface, rect, direction):
+        """Dessine une flèche (triangle) pointant vers la gauche ou la droite."""
         color = COLOR_ACCENT
         center_x = rect.x + rect.width // 2
         center_y = rect.y + rect.height // 2

@@ -11,7 +11,10 @@ from audio_manager import AudioManager
 from settings_manager import SettingsManager
 
 class GameManager:
+    """Gestionnaire principal du jeu coordonnant les états, l'audio et la logique globale."""
+
     def __init__(self):
+        """Initialise Pygame, les gestionnaires de paramètres/audio/scores et crée les composants du jeu."""
         pygame.init()
         self.settings_manager = SettingsManager()
 
@@ -46,6 +49,7 @@ class GameManager:
         self.font_game = pygame.font.SysFont('Arial', 24, bold=True)
 
     def change_state(self, new_state):
+        """Change l'état actuel du jeu (menu, jeu, scores, paramètres) et gère les transitions."""
         if self.current_state == STATE_GAME:
             if new_state == STATE_MENU:
                 if self.score > 0:
@@ -72,6 +76,7 @@ class GameManager:
             self.score_screen.load_scores()
 
     def handle_events(self):
+        """Traite tous les événements Pygame (clics, clavier) en fonction de l'état actuel."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -100,9 +105,11 @@ class GameManager:
                 self.settings_screen.handle_events(event)
 
     def add_score(self, pts):
+        """Ajoute des points au score du joueur."""
         self.score = self.score + pts
 
     def resume_game(self, entry):
+        """Reprend une partie sauvegardée à partir de ses données (score, niveau, seeds)."""
         self.score = entry.get('score', 0)
         self.level = entry.get('level', 0)
         level_seed = entry.get('level_seed')
@@ -121,9 +128,11 @@ class GameManager:
             )
 
     def toggle_fullscreen(self, is_fullscreen):
+        """Bascule l'affichage du jeu entre plein écran et fenêtré."""
         pygame.display.toggle_fullscreen()
 
     def auto_save(self):
+        """Effectue une sauvegarde automatique de la progression si une partie est en cours."""
         if self.current_session_id != None:
             if self.current_state == STATE_GAME:
                 self.save_manager.update_save(
@@ -135,6 +144,7 @@ class GameManager:
                 )
 
     def update_language(self):
+        """Met à jour les textes et régénère les écrans d'UI suite à un changement de langue."""
         lang_name = self.settings_manager.get("language")
         current_lang = "fr"
         if lang_name == "Anglais":
@@ -149,6 +159,7 @@ class GameManager:
         self.settings_screen = SettingsScreen(self)
 
     def update(self, dt):
+        """Met à jour la logique de jeu (animations, grilles) selon le temps écoulé."""
         if self.current_state == STATE_MENU:
             self.menu.update()
         elif self.current_state == STATE_GAME:
@@ -166,6 +177,7 @@ class GameManager:
             self.settings_screen.update()
 
     def draw(self):
+        """Dessine l'état courant à l'écran (plateau, menus, UI)."""
         if self.current_state == STATE_MENU:
             self.menu.draw(self.screen)
         elif self.current_state == STATE_SCORES:
@@ -193,6 +205,7 @@ class GameManager:
         pygame.display.flip()
 
     def run(self):
+        """Boucle principale du jeu gérant les FPS, les événements, l'update et le dessin."""
         while self.running:
             dt = self.clock.tick(FPS)
             self.handle_events()
